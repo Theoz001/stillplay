@@ -19,13 +19,13 @@ import { cardName, PATHS } from './cards.js';
 
 const SETTINGS_KEY = 'stillplay-hearts-options';
 const DEFAULTS = { difficulty: 1, speed: 'relaxed' };
-const NAMES = ['You', 'Wren', 'Nell', 'Esme'];
+const NAMES = ["你", "雷恩", "内尔", "埃斯梅"];
 const OPPONENTS = [1, 2, 3];
 const QUEEN = 50;
 const TWO_OF_CLUBS = 1;
 const HEARTS = 2;
-const SUIT_WORDS = ['club', 'diamond', 'heart', 'spade'];
-const SUIT_PLURALS = ['clubs', 'diamonds', 'hearts', 'spades'];
+const SUIT_WORDS = ['梅花', '方块', '红心', '黑桃'];
+const SUIT_PLURALS = ['梅花', '方块', '红心', '黑桃'];
 const DIRECTION_SEAT = { left: 1, across: 2, right: 3 };
 /* Milliseconds for each beat of the computer turns. */
 const PACES = {
@@ -36,15 +36,15 @@ const STILL = { fly: 0, gap: 0, hold: 0, sweep: 0, pass: 0 };
 
 const suitOf = (card) => Math.floor(card / 13);
 const capital = (text) => text.charAt(0).toUpperCase() + text.slice(1);
-const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
+const plural = (count, word) => `${count} ${({card:'张牌',move:'步',run:'组',deal:'排',heart:'张红心',point:'分',hand:'手',选中的牌:'张选中的牌'})[word] || word}`;
 const validDeal = (value) => Number.isInteger(value) && value >= 1 && value <= 2147483647;
 const pointsOf = (card) => (card === QUEEN ? 13 : suitOf(card) === HEARTS ? 1 : 0);
-const possessive = (seat) => (seat === 0 ? 'your' : `${NAMES[seat]}’s`);
+const possessive = (seat) => (seat === 0 ? '你的' : `${NAMES[seat]}的`);
 const listCards = (cards) => {
-  const names = cards.map((card) => `the ${cardName(card)}`);
-  return names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names[0] ?? '';
+  const names = cards.map((card) => `${cardName(card)}`);
+  return names.length > 1 ? `${names.slice(0, -1).join(', ')}和${names.at(-1)}` : names[0] ?? '';
 };
-const ordinal = (n) => ['first', 'second', 'third', 'fourth'][n] ?? `${n + 1}th`;
+const ordinal = (n) => ['第一', '第二', '第三', '第四'][n] ?? `第 ${n + 1}`;
 
 function readJSON(key, fallback) {
   try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
@@ -92,18 +92,18 @@ function playsOf(state) {
 
 /** Plain words for why a card cannot be played, or null when it can. */
 function illegalReason(card, state) {
-  if (state.phase !== 'play') return 'Pass your three cards first.';
-  if (state.turn !== 0) return 'Wait for your turn.';
+  if (state.phase !== 'play') return "请先选三张牌传给对手。";
+  if (state.turn !== 0) return "请等待你的回合。";
   if (state.legal.includes(card)) return null;
   const hand = state.cards;
-  if (state.tricksPlayed === 0 && !state.trick.length) return 'The two of clubs leads the first trick.';
+  if (state.tricksPlayed === 0 && !state.trick.length) return "第一墩由梅花 2 先出。";
   if (state.trick.length) {
     const led = suitOf(state.trick[0].card);
-    if (suitOf(card) !== led && hand.some((held) => suitOf(held) === led)) return `You must follow suit: play a ${SUIT_WORDS[led]}.`;
+    if (suitOf(card) !== led && hand.some((held) => suitOf(held) === led)) return `必须跟花色，请出一张${SUIT_WORDS[led]}。`;
   }
-  if (state.tricksPlayed === 0) return 'No points on the first trick: keep your hearts and the queen of spades for later.';
-  if (!state.trick.length && suitOf(card) === HEARTS && !state.heartsBroken) return 'Hearts aren’t broken yet. Lead another suit.';
-  return 'That card can’t be played right now.';
+  if (state.tricksPlayed === 0) return "第一墩不能垫分。红心和黑桃 Q 请留到后面。";
+  if (!state.trick.length && suitOf(card) === HEARTS && !state.heartsBroken) return "红心尚未破，暂时不能首引红心。";
+  return "当前不能出这张牌。";
 }
 
 const heartGlyph = (cls = '') => `<svg class="hz-glyph ${cls}" viewBox="0 0 24 24" aria-hidden="true"><path d="${PATHS[2]}" fill="currentColor"/></svg>`;
@@ -117,28 +117,28 @@ const MOON = '<svg class="hz-moon" viewBox="0 0 64 64" aria-hidden="true"><circl
 const WINDOW_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="2.5" width="12" height="17" rx="1.2" fill="#2c6249" stroke="#fff" stroke-width=".8"/><rect x="9" y="4.5" width="12" height="17" rx="1.2" fill="#fff" stroke="#142b64"/><path d="M15 9.2c-1.2-1.6-3.6-.4-2.6 1.6.6 1.1 2.6 2.6 2.6 2.6s2-1.5 2.6-2.6c1-2-1.4-3.2-2.6-1.6Z" fill="#b4232b"/></svg>`;
 
 function plate(seat) {
-  return `<span class="hz-plate" data-seat="${seat}"><span class="hz-name">${NAMES[seat]}</span><span class="hz-total" title="Score">0</span><span class="hz-taken"></span></span>`;
+  return `<span class="hz-plate" data-seat="${seat}"><span class="hz-name">${NAMES[seat]}</span><span class="hz-total" title="得分">0</span><span class="hz-taken"></span></span>`;
 }
 
 function markup() {
   const pile = (id) => `<div class="hz-pile" data-pile-id="${id}"></div>`;
-  return `<section class="hz-window" aria-label="Hearts game">
-  <div class="hz-titlebar"><span class="hz-title-icon">${WINDOW_ICON}</span><span class="hz-title">Hearts</span><span class="hz-title-controls" aria-hidden="true"><i></i><i></i><i>×</i></span></div>
+  return `<section class="hz-window" aria-label="红心大战牌桌">
+  <div class="hz-titlebar"><span class="hz-title-icon">${WINDOW_ICON}</span><span class="hz-title">红心大战</span><span class="hz-title-controls" aria-hidden="true"><i></i><i></i><i>×</i></span></div>
   <div class="hz-menubar">
-    <div class="hz-menu-wrap"><button type="button" class="hz-menu-trigger" data-action="menu-game" aria-expanded="false" aria-haspopup="menu"><u>G</u>ame</button>
+    <div class="hz-menu-wrap"><button type="button" class="hz-menu-trigger" data-action="menu-game" aria-expanded="false" aria-haspopup="menu">游戏</button>
       <div class="hz-dropdown" role="menu" data-menu="game" hidden>
-        <button role="menuitem" type="button" data-action="new">New game <span>F2</span></button>
-        <button role="menuitem" type="button" data-action="deal">Choose a deal…</button>
+        <button role="menuitem" type="button" data-action="new">新游戏 <span>F2</span></button>
+        <button role="menuitem" type="button" data-action="deal">选择牌局…</button>
         <div class="hz-menu-separator" role="separator"></div>
-        <button role="menuitem" type="button" data-action="hint">Hint <span>H</span></button>
-        <button role="menuitem" type="button" data-action="scores">Score sheet <span>T</span></button>
+        <button role="menuitem" type="button" data-action="hint">提示 <span>H</span></button>
+        <button role="menuitem" type="button" data-action="scores">计分表 <span>T</span></button>
         <div class="hz-menu-separator" role="separator"></div>
-        <button role="menuitem" type="button" data-action="options">Options…</button>
+        <button role="menuitem" type="button" data-action="options">选项…</button>
       </div></div>
-    <div class="hz-menu-wrap"><button type="button" class="hz-menu-trigger" data-action="menu-help" aria-expanded="false" aria-haspopup="menu"><u>H</u>elp</button>
+    <div class="hz-menu-wrap"><button type="button" class="hz-menu-trigger" data-action="menu-help" aria-expanded="false" aria-haspopup="menu">帮助</button>
       <div class="hz-dropdown" role="menu" data-menu="help" hidden>
-        <button role="menuitem" type="button" data-action="help">How to play <span>F1</span></button>
-        <button role="menuitem" type="button" data-action="about">About this version</button>
+        <button role="menuitem" type="button" data-action="help">玩法说明 <span>F1</span></button>
+        <button role="menuitem" type="button" data-action="about">关于此版本</button>
       </div></div>
     <span class="hz-menu-mode"></span>
   </div>
@@ -156,58 +156,58 @@ function markup() {
     </div>
     <div class="hz-seat hz-seat-east" data-seat="3">${plate(3)}<div class="hz-fan">${pile('o3')}</div></div>
     <div class="hz-you" data-seat="0">${plate(0)}<span class="hz-prompt" aria-hidden="true"></span></div>
-    <div class="hz-hand" role="group" aria-label="Your hand">${pile('h0')}${pile('h1')}</div>
+    <div class="hz-hand" role="group" aria-label="你的手牌">${pile('h0')}${pile('h1')}</div>
     <div class="hz-panel" role="status" hidden></div>
   </div>
-  <div class="hz-statusbar"><span class="hz-status-hand">Hand 1</span><span class="hz-status-hearts"></span><span class="hz-status-score">You: 0</span></div>
+  <div class="hz-statusbar"><span class="hz-status-hand">第 1 手</span><span class="hz-status-hearts"></span><span class="hz-status-score">你：0</span></div>
 </section>
 <div class="hz-below">
   <div class="hz-quick-actions">
-    <button type="button" data-action="hint">Hint</button><span aria-hidden="true">·</span>
-    <button type="button" data-action="scores">Score sheet</button><span aria-hidden="true">·</span>
-    <button type="button" data-action="options">Options</button><span aria-hidden="true">·</span>
-    <button type="button" data-action="new">New game</button>
+    <button type="button" data-action="hint">提示</button><span aria-hidden="true">·</span>
+    <button type="button" data-action="scores">计分表</button><span aria-hidden="true">·</span>
+    <button type="button" data-action="options">选项</button><span aria-hidden="true">·</span>
+    <button type="button" data-action="new">新游戏</button>
   </div>
   <p class="hz-message" role="status" aria-live="polite"></p>
 </div>
 <dialog class="hz-dialog" data-dialog="deal" aria-labelledby="hz-deal-title"><form method="dialog" class="hz-dialog-form" data-form="deal">
-  <h2 id="hz-deal-title">Choose a deal</h2><p>Every number is its own game: the same deals, hand after hand. Share one and a friend gets the same cards.</p>
-  <label for="hz-deal-input">Deal number</label><input id="hz-deal-input" name="deal" type="number" min="1" max="2147483647" step="1" required>
+  <h2 id="hz-deal-title">选择牌局</h2><p>同一编号会生成相同的一系列牌局，可以将编号分享给朋友。</p>
+  <label for="hz-deal-input">牌局编号</label><input id="hz-deal-input" name="deal" type="number" min="1" max="2147483647" step="1" required>
   <p class="hz-dialog-error" data-deal-error aria-live="polite"></p>
-  <div class="hz-dialog-actions"><button class="hz-classic-button" type="button" data-action="cancel-dialog">Cancel</button><button class="hz-classic-button hz-default-button" type="submit">Deal</button></div>
+  <div class="hz-dialog-actions"><button class="hz-classic-button" type="button" data-action="cancel-dialog">取消</button><button class="hz-classic-button hz-default-button" type="submit">发牌</button></div>
 </form></dialog>
 <dialog class="hz-dialog" data-dialog="options" aria-labelledby="hz-options-title"><form method="dialog" class="hz-dialog-form" data-form="options">
-  <h2 id="hz-options-title">Options</h2>
+  <h2 id="hz-options-title">选项</h2>
   <div class="hz-option-groups">
-    <fieldset><legend>Wren, Nell and Esme play</legend>
-      <label><input type="radio" name="difficulty" value="0"> Casually</label>
-      <label><input type="radio" name="difficulty" value="1"> Carefully</label></fieldset>
-    <fieldset><legend>Card speed</legend>
-      <label><input type="radio" name="speed" value="relaxed"> Relaxed</label>
-      <label><input type="radio" name="speed" value="brisk"> Brisk</label></fieldset>
+    <fieldset><legend>电脑对手的打法</legend>
+      <label><input type="radio" name="difficulty" value="0"> 轻松</label>
+      <label><input type="radio" name="difficulty" value="1"> 谨慎</label></fieldset>
+    <fieldset><legend>出牌速度</legend>
+      <label><input type="radio" name="speed" value="relaxed"> 舒缓</label>
+      <label><input type="radio" name="speed" value="brisk"> 快速</label></fieldset>
   </div>
-  <p class="hz-dialog-note">Changing how they play starts this deal again. Tap the table while they play to hurry them along.</p>
-  <div class="hz-dialog-actions"><button class="hz-classic-button" type="button" data-action="cancel-dialog">Cancel</button><button class="hz-classic-button hz-default-button" type="submit">OK</button></div>
+  <p class="hz-dialog-note">更改打法会重新开始本局。电脑出牌时点按牌桌可以加快速度。</p>
+  <div class="hz-dialog-actions"><button class="hz-classic-button" type="button" data-action="cancel-dialog">取消</button><button class="hz-classic-button hz-default-button" type="submit">确定</button></div>
 </form></dialog>
 <dialog class="hz-dialog hz-scores-dialog" data-dialog="scores" aria-labelledby="hz-scores-title"><div class="hz-dialog-form">
-  <h2 id="hz-scores-title">Score sheet</h2>
+  <h2 id="hz-scores-title">计分表</h2>
   <div class="hz-sheet"></div>
   <p class="hz-dialog-note">Running totals, with each hand’s points beneath. The game ends when someone reaches 100; the lowest total wins.</p>
-  <div class="hz-dialog-actions"><button type="button" class="hz-classic-button hz-default-button" data-action="cancel-dialog">OK</button></div>
+  <div class="hz-dialog-actions"><button type="button" class="hz-classic-button hz-default-button" data-action="cancel-dialog">确定</button></div>
 </div></dialog>
 <dialog class="hz-dialog" data-dialog="help" aria-labelledby="hz-help-title"><div class="hz-dialog-form">
-  <h2 id="hz-help-title">How to play Hearts</h2>
-  <p>Take as few points as you can. Every heart is worth one point and the queen of spades is worth thirteen. When someone reaches 100, the lowest score wins.</p>
+  <h2 id="hz-help-title">红心大战玩法</h2>
+  <p>尽量少得分。每张红心计 1 分，黑桃 Q 计 13 分。有人达到 100 分时，得分最低者获胜。</p>
   <p>Before each hand, pass three cards: left, then right, then across, then keep your cards. The two of clubs leads. Follow the suit that was led if you can; the highest card of that suit takes the trick. No points on the first trick, and hearts can’t be led until one has been played.</p>
-  <p>Take every heart and the queen and you <strong>shoot the moon</strong>: you score nothing and everyone else takes 26.</p>
-  <p><strong>Playing:</strong> tap or click a raised card, or drag it up onto the table. <strong>Keyboard:</strong> ←/→ choose a card, Enter plays it or picks it to pass; after the third card, focus moves to the Pass button. <strong>H</strong> hints, <strong>T</strong> shows the score sheet, <strong>F2</strong> starts a new game. There is no undo, just as in the original.</p>
-  <div class="hz-dialog-actions"><button type="button" class="hz-classic-button hz-default-button" data-action="cancel-dialog">Got it</button></div>
+  <p>收齐所有红心和黑桃 Q，称为 <strong>全收</strong>：你得 0 分，其余每人得 26 分。</p>
+  <p><strong>出牌</strong> 点击一张可出的牌，或向上拖到牌桌上。 <strong>键盘操作</strong> ←/→ choose a card, Enter plays it or picks it to pass; after the third card, focus moves to the Pass button. <strong>H</strong> 显示提示， <strong>T</strong> 打开计分表， <strong>F2</strong> 开始新局。红心大战不能撤销出牌。</p>
+  <div class="hz-dialog-actions"><button type="button" class="hz-classic-button hz-default-button" data-action="cancel-dialog">知道了</button></div>
 </div></dialog>
 <dialog class="hz-dialog" data-dialog="about" aria-labelledby="hz-about-title"><div class="hz-dialog-form">
-  <h2 id="hz-about-title">A familiar game, made fresh</h2>
-  <p>This is our own Hearts, written in C and compiled to WebAssembly. Wren, Nell and Esme play fair: each one sees only its own cards and what has been played.</p>
-  <p>The cards, the table and the players are all drawn and named for this project.</p>
-  <div class="hz-dialog-actions"><button type="button" class="hz-classic-button hz-default-button" data-action="cancel-dialog">Close</button></div>
+  <h2 id="hz-about-title">关于红心大战</h2>
+  <p>本版在本机运行。三个电脑对手只能看到各自的手牌和已经打出的牌。</p>
+  <p>牌面、牌桌与角色均由本项目制作。</p>
+  <div class="hz-dialog-actions"><button type="button" class="hz-classic-button hz-default-button" data-action="cancel-dialog">关闭</button></div>
 </div></dialog>`;
 }
 
@@ -271,19 +271,19 @@ export async function mountHearts(container, { daily = false, onWin = () => {}, 
   const table = createCardTable(felt, {
     cardClass: 'hz-card',
     piles: [
-      { id: 'o2', element: pileEl('o2'), row: 0, label: 'Nell’s hand', fan: 'right', fanOffset: () => layout?.oppX ?? 4 },
-      { id: 'o1', element: pileEl('o1'), row: 0, label: 'Wren’s hand', fan: 'down', faceDownOffset: () => layout?.oppY ?? 3 },
-      { id: 'o3', element: pileEl('o3'), row: 0, label: 'Esme’s hand', fan: 'down', faceDownOffset: () => layout?.oppY ?? 3 },
-      ...[0, 1, 2, 3].map((seat) => ({ id: `p${seat}`, element: pileEl(`p${seat}`), row: 0, label: `${possessive(seat)} card` })),
-      { id: 'h0', element: pileEl('h0'), row: 1, label: 'your hand', fan: 'right', fanOffset: () => layout?.step ?? 20 },
-      { id: 'h1', element: pileEl('h1'), row: 1, label: 'your hand', fan: 'right', fanOffset: () => layout?.step ?? 20 },
+      { id: 'o2', element: pileEl('o2'), row: 0, label: "内尔的手牌", fan: 'right', fanOffset: () => layout?.oppX ?? 4 },
+      { id: 'o1', element: pileEl('o1'), row: 0, label: "雷恩的手牌", fan: 'down', faceDownOffset: () => layout?.oppY ?? 3 },
+      { id: 'o3', element: pileEl('o3'), row: 0, label: "埃斯梅的手牌", fan: 'down', faceDownOffset: () => layout?.oppY ?? 3 },
+      ...[0, 1, 2, 3].map((seat) => ({ id: `p${seat}`, element: pileEl(`p${seat}`), row: 0, label: `${possessive(seat)}的牌` })),
+      { id: 'h0', element: pileEl('h0'), row: 1, label: "你的手牌", fan: 'right', fanOffset: () => layout?.step ?? 20 },
+      { id: 'h1', element: pileEl('h1'), row: 1, label: "你的手牌", fan: 'right', fanOffset: () => layout?.step ?? 20 },
     ],
     canPick: () => false,
     activate,
     autoMove: () => false,
     cardLabel(card, faceUp, pile) {
-      if (pile[0] === 'o') return `Card in ${NAMES[Number(pile[1])]}’s hand`;
-      if (pile[0] === 'p') return `${Number(pile[1]) === 0 ? 'You' : NAMES[Number(pile[1])]} played the ${cardName(card)}`;
+      if (pile[0] === 'o') return `${NAMES[Number(pile[1])]}手中的牌`;
+      if (pile[0] === 'p') return `${Number(pile[1]) === 0 ? "你" : NAMES[Number(pile[1])]}打出了${cardName(card)}`;
       return capital(cardName(card));
     },
     announce,
@@ -411,7 +411,7 @@ export async function mountHearts(container, { daily = false, onWin = () => {}, 
       el.classList.toggle('hz-chosen', chosen);
       el.tabIndex = card === cursorCard ? 0 : -1;
       if (passing) el.setAttribute('aria-pressed', String(chosen)); else el.removeAttribute('aria-pressed');
-      const note = passing ? (chosen ? ', chosen to pass' : '') : playing && !legal.has(card) ? ', can’t be played now' : '';
+      const note = passing ? (chosen ? "，已选中传出" : '') : playing && !legal.has(card) ? "，当前无法出牌" : '';
       el.setAttribute('aria-label', `${capital(cardName(card))}${note}`);
     }
   }
@@ -491,7 +491,7 @@ export async function mountHearts(container, { daily = false, onWin = () => {}, 
     setTimeout(() => { if (drag === current) drag = null; }, 0);
     const released = event.type !== 'pointercancel';
     if (released && event.clientY < handTop - 6 && tryPlay(current.card)) return;
-    if (released && event.clientY >= handTop - 6) announce('Drag a card up onto the table to play it, or just tap it.');
+    if (released && event.clientY >= handTop - 6) announce("向上拖动或点按手牌即可出牌。");
     snapBack(current);
   }
   function snapBack(current) {
@@ -575,20 +575,20 @@ export async function mountHearts(container, { daily = false, onWin = () => {}, 
   function renderChrome() {
     if (destroyed || !view) return;
     const state = engine.state();
-    $('.hz-title').textContent = `Hearts — Deal #${state.seed}`;
-    $('.hz-menu-mode').textContent = `${daily ? 'Daily · ' : ''}${state.difficulty === 0 ? 'Casual' : 'Standard'}`;
-    const passing = state.passDirection === 'hold' ? 'No passing' : `Pass ${state.passDirection}`;
-    $('.hz-status-hand').textContent = `Hand ${state.handNumber + 1} · ${passing}`;
+    $('.hz-title').textContent = `红心大战 · 第 ${state.seed} 局`;
+    $('.hz-menu-mode').textContent = `${daily ? "每日挑战 · " : ''}${state.difficulty === 0 ? "轻松" : "标准"}`;
+    const passing = state.passDirection === 'hold' ? "本轮不传牌" : `向${({left:'左',across:'对面',right:'右',hold:'不传'})[state.passDirection]}传牌`;
+    $('.hz-status-hand').textContent = `第 ${state.handNumber + 1} 手 · ${passing}`;
     const hearts = $('.hz-status-hearts');
-    hearts.innerHTML = `${heartGlyph(view.heartsBroken ? 'hz-glyph-on' : 'hz-glyph-off')} ${view.heartsBroken ? 'Hearts broken' : 'Hearts not broken'}`;
-    $('.hz-status-score').textContent = `You: ${view.scores[0]}`;
+    hearts.innerHTML = `${heartGlyph(view.heartsBroken ? 'hz-glyph-on' : 'hz-glyph-off')} ${view.heartsBroken ? "红心已破" : "红心未破"}`;
+    $('.hz-status-score').textContent = `你：${view.scores[0]}`;
     for (const seat of [0, 1, 2, 3]) {
       const el = plateEl(seat);
       el.querySelector('.hz-total').textContent = String(view.scores[seat]);
       const points = view.handPoints[seat];
       const hearts = points - (view.queenSeat === seat ? 13 : 0);
       el.querySelector('.hz-taken').innerHTML = `${hearts > 0 ? `<span class="hz-chip hz-chip-hearts">${heartGlyph()}${hearts}</span>` : ''}${view.queenSeat === seat ? `<span class="hz-chip hz-chip-queen">Q${spadeGlyph()}</span>` : ''}`;
-      el.setAttribute('aria-label', `${NAMES[seat]}: ${view.scores[seat]} points${points ? `, ${points} this hand` : ''}`);
+      el.setAttribute('aria-label', `${NAMES[seat]}：${view.scores[seat]} 分${points ? `，本手 ${points} 分` : ''}`);
     }
   }
   function markTurn(seat) {
@@ -599,16 +599,16 @@ export async function mountHearts(container, { daily = false, onWin = () => {}, 
   function showPass(state) {
     const target = DIRECTION_SEAT[state.passDirection];
     passEl.hidden = false;
-    passEl.querySelector('.hz-pass-text').innerHTML = `Choose three cards to pass to <strong>${NAMES[target]}</strong>.`;
+    passEl.querySelector('.hz-pass-text').innerHTML = `选三张牌传给 <strong>${NAMES[target]}</strong>.`;
     updatePassButton(state);
   }
   function hidePass() { passEl.hidden = true; }
   function updatePassButton(state = engine.state()) {
     const button = passEl.querySelector('.hz-pass-button');
-    button.innerHTML = `Pass ${state.passDirection} ${ARROWS[state.passDirection] ?? ''}`;
+    button.innerHTML = `传出${({left:'左',across:'对面',right:'右',hold:'不传'})[state.passDirection]} ${ARROWS[state.passDirection] ?? ''}`;
     button.disabled = selected.size !== 3;
-    button.setAttribute('aria-label', `Pass ${plural(selected.size, 'chosen card')} ${state.passDirection} to ${NAMES[DIRECTION_SEAT[state.passDirection]]}`);
-    passEl.querySelector('.hz-pass-count').textContent = `${selected.size} of 3 chosen`;
+    button.setAttribute('aria-label', `将${plural(selected.size, "选中的牌")} ${({left:'左',across:'对面',right:'右',hold:'不传'})[state.passDirection]}传给${NAMES[DIRECTION_SEAT[state.passDirection]]}`);
+    passEl.querySelector('.hz-pass-count').textContent = `已选 ${selected.size}/3 张`;
   }
   function toggleChosen(card) {
     if (selected.has(card)) {
@@ -618,7 +618,7 @@ export async function mountHearts(container, { daily = false, onWin = () => {}, 
       const at = view.hand.indexOf(card);
       table.shake(at < (layout?.split ?? 99) ? 'h0' : 'h1', at < (layout?.split ?? 99) ? at : at - layout.split);
       playSound('invalid');
-      announce('Three cards are chosen. Tap one of them to put it back first.');
+      announce("已选三张。可以先点一张取消选择。");
       return;
     } else {
       selected.add(card);
@@ -629,15 +629,15 @@ export async function mountHearts(container, { daily = false, onWin = () => {}, 
     updatePassButton();
     const state = engine.state();
     announce(selected.size === 3
-      ? `Ready to pass ${listCards([...selected].sort(handOrder))} to ${NAMES[DIRECTION_SEAT[state.passDirection]]}.`
-      : `${capital(cardName(card))} ${selected.has(card) ? 'chosen' : 'put back'}. ${plural(selected.size, 'card')} of 3 chosen.`);
+      ? `将把${listCards([...selected].sort(handOrder))}传给${NAMES[DIRECTION_SEAT[state.passDirection]]}。`
+      : `${capital(cardName(card))}${selected.has(card) ? '已选中' : "已放回"}，已选 ${plural(selected.size, 'card')}/3 张。`);
   }
   function passCards() {
     const before = engine.state();
     if (busy || before.phase !== 'pass') return;
-    if (selected.size !== 3) { announce('Choose exactly three cards to pass.'); playSound('invalid'); return; }
+    if (selected.size !== 3) { announce("请选满三张再传牌。"); playSound('invalid'); return; }
     const cards = [...selected].sort(handOrder);
-    if (!engine.pass(cards)) { announce('Those cards can’t be passed.'); playSound('invalid'); return; }
+    if (!engine.pass(cards)) { announce("这些牌不能传出。"); playSound('invalid'); return; }
     selected.clear();
     startClock();
     const after = engine.state();
@@ -677,7 +677,7 @@ export async function mountHearts(container, { daily = false, onWin = () => {}, 
     await render({ duration: pace().pass });
     if (!alive(token)) return;
     playSound('card-place');
-    lastEvent = `You passed ${listCards(cards)} to ${NAMES[target]}. ${NAMES[source]} passed you ${listCards(received)}.`;
+    lastEvent = `你将${listCards(cards)}传给${NAMES[target]}；${NAMES[source]}传给你${listCards(received)}。`;
     announce(lastEvent);
     markReceived(received);
     await wait(pace().hold * 0.6);
@@ -702,7 +702,7 @@ export async function mountHearts(container, { daily = false, onWin = () => {}, 
     const before = engine.state();
     const reason = illegalReason(card, before);
     if (reason) { refuse(card, reason); return false; }
-    if (!engine.play(card)) { refuse(card, 'That card can’t be played right now.'); return false; }
+    if (!engine.play(card)) { refuse(card, "当前不能出这张牌。"); return false; }
     startClock();
     const after = engine.state();
     const from = playsOf(before).length;
@@ -785,9 +785,9 @@ export async function mountHearts(container, { daily = false, onWin = () => {}, 
     renderChrome();
     playSound(hasQueen ? 'queen-of-spades' : 'trick-take');
     if (trick.points) floatPoints(winner, trick.points, hasQueen);
-    const who = winner === 0 ? 'You take' : `${NAMES[winner]} takes`;
-    lastEvent = hasQueen ? `${who} the queen of spades${trick.points > 13 ? ` and ${plural(trick.points - 13, 'heart')}` : ''}.`
-      : `${who} the trick${trick.points ? ` and ${plural(trick.points, 'point')}` : ''}.`;
+    const who = winner === 0 ? "你收下" : `${NAMES[winner]}收下`;
+    lastEvent = hasQueen ? `${who}黑桃 Q${trick.points > 13 ? ` 和${plural(trick.points - 13, 'heart')}` : ''}。`
+      : `${who}这一墩${trick.points ? ` 和${plural(trick.points, 'point')}` : ''}。`;
     announce(lastEvent);
   }
   function floatPoints(seat, points, queen) {
@@ -805,8 +805,8 @@ export async function mountHearts(container, { daily = false, onWin = () => {}, 
   }
   function heartsBroken(seat) {
     playSound('hearts-broken');
-    announce(`${seat === 0 ? 'You break' : `${NAMES[seat]} breaks`} hearts.`);
-    showMoment(`${heartGlyph()}<span>Hearts broken</span>`, 'hz-moment-hearts', 1500);
+    announce(`${seat === 0 ? "你率先打出了" : `${NAMES[seat]}率先打出了`}红心。`);
+    showMoment(`${heartGlyph()}<span>红心已破</span>`, 'hz-moment-hearts', 1500);
   }
   let momentTimer = 0;
   function showMoment(html, kind, ms) {
@@ -839,22 +839,22 @@ export async function mountHearts(container, { daily = false, onWin = () => {}, 
     const last = state.lastHand;
     const handNumber = state.history.length;
     const queenSeat = view.queenSeat;
-    let kicker = `Hand ${handNumber} done`;
+    let kicker = `第 ${handNumber} 手结束`;
     let headline;
     let art = '';
     if (last.moon !== null) {
-      headline = last.moon === 0 ? 'You shot the moon.' : `${NAMES[last.moon]} shot the moon.`;
-      kicker = last.moon === 0 ? 'Every heart and the queen' : 'All 26 points in one hand';
+      headline = last.moon === 0 ? "你全收了！" : `${NAMES[last.moon]}全收了！`;
+      kicker = last.moon === 0 ? "收齐全部红心和黑桃 Q" : "一手收齐全部 26 分";
       art = MOON;
-    } else if (last.points[0] === 0) headline = 'A clean hand. Not a single point.';
-    else if (queenSeat === 0) headline = 'The queen found you this time.';
-    else if (queenSeat !== null) headline = `${NAMES[queenSeat]} took the queen.`;
-    else headline = `You took ${plural(last.points[0], 'point')}.`;
+    } else if (last.points[0] === 0) headline = "本手零分。";
+    else if (queenSeat === 0) headline = "这次你收到了黑桃 Q。";
+    else if (queenSeat !== null) headline = `${NAMES[queenSeat]}收到了黑桃 Q。`;
+    else headline = `本手你收下${plural(last.points[0], 'point')}。`;
     const leader = Math.max(...state.scores);
     showPanel(`${art}<span class="hz-kicker">${kicker}</span><strong>${headline}</strong>
-      <table class="hz-mini"><thead><tr><th scope="col"><span class="hz-visually-hidden">Player</span></th><th scope="col">Hand</th><th scope="col">Total</th></tr></thead><tbody>${standingsRows(state, true)}</tbody></table>
-      <p>First to 100 ends the game${leader >= 75 ? `, and ${NAMES[state.scores.indexOf(leader)]} is close` : ''}. Lowest score wins.</p>
-      <div class="hz-panel-actions"><button type="button" class="hz-classic-button hz-default-button" data-action="next-hand">Deal the next hand</button><button type="button" class="hz-text-button" data-action="scores">Score sheet</button></div>`,
+      <table class="hz-mini"><thead><tr><th scope="col"><span class="hz-visually-hidden">玩家</span></th><th scope="col">本手</th><th scope="col">总分</th></tr></thead><tbody>${standingsRows(state, true)}</tbody></table>
+      <p>有人达到 100 分即结束${leader >= 75 ? `，${NAMES[state.scores.indexOf(leader)]}已接近 100 分` : ''}。总分最低者获胜。</p>
+      <div class="hz-panel-actions"><button type="button" class="hz-classic-button hz-default-button" data-action="next-hand">发下一手</button><button type="button" class="hz-text-button" data-action="scores">计分表</button></div>`,
     last.moon !== null ? 'hz-panel-moon' : '');
     announce(`${headline} ${state.scores.map((score, seat) => `${NAMES[seat]} ${score}`).join(', ')}.`);
     prompt('');
@@ -865,20 +865,20 @@ export async function mountHearts(container, { daily = false, onWin = () => {}, 
     const won = winners.includes(0);
     const best = state.scores[winners[0]];
     let headline;
-    if (won && winners.length === 1) headline = `You win with ${best}.`;
-    else if (won) headline = `You share the win with ${winners.filter((seat) => seat !== 0).map((seat) => NAMES[seat]).join(' and ')}.`;
-    else headline = `${winners.map((seat) => NAMES[seat]).join(' and ')} ${winners.length > 1 ? 'share the win' : `wins with ${best}`}.`;
+    if (won && winners.length === 1) headline = `你以 ${best} 分获胜。`;
+    else if (won) headline = `你与${winners.filter((seat) => seat !== 0).map((seat) => NAMES[seat]).join('和')}并列获胜。`;
+    else headline = `${winners.map((seat) => NAMES[seat]).join('和')} ${winners.length > 1 ? "并列获胜" : `以 ${best} 分获胜`}.`;
     const place = [0, 1, 2, 3].filter((seat) => state.scores[seat] < state.scores[0]).length;
     const sub = won
-      ? `${plural(state.history.length, 'hand')}, and the lowest score at the table.${daily ? ' Today’s game, done.' : ''}`
+      ? `${plural(state.history.length, 'hand')}，全场最低。${daily ? " 今日挑战结束。" : ''}`
       : `You finished ${ordinal(place)} with ${state.scores[0]}. Every deal is a fresh start; another game?`;
     // In the site shell a win gets the page's result dialog instead; a loss keeps this panel.
-    if (!(chrome && won)) showPanel(`${state.lastHand?.moon !== null && state.lastHand?.moon !== undefined ? MOON : ''}<span class="hz-kicker">Game over · ${plural(state.history.length, 'hand')}</span><strong>${headline}</strong>
-      <table class="hz-mini"><thead><tr><th scope="col"><span class="hz-visually-hidden">Player</span></th><th scope="col">Last hand</th><th scope="col">Total</th></tr></thead><tbody>${standingsRows(state, true)}</tbody></table>
+    if (!(chrome && won)) showPanel(`${state.lastHand?.moon !== null && state.lastHand?.moon !== undefined ? MOON : ''}<span class="hz-kicker">对局结束 · ${plural(state.history.length, 'hand')}</span><strong>${headline}</strong>
+      <table class="hz-mini"><thead><tr><th scope="col"><span class="hz-visually-hidden">玩家</span></th><th scope="col">上一手</th><th scope="col">总分</th></tr></thead><tbody>${standingsRows(state, true)}</tbody></table>
       <p>${sub}</p>
-      <div class="hz-panel-actions"><button type="button" class="hz-classic-button hz-default-button" data-action="new">New game</button><button type="button" class="hz-text-button" data-action="same">Play this deal again</button><button type="button" class="hz-text-button" data-action="scores">Score sheet</button></div>`,
+      <div class="hz-panel-actions"><button type="button" class="hz-classic-button hz-default-button" data-action="new">新游戏</button><button type="button" class="hz-text-button" data-action="same">重玩本局</button><button type="button" class="hz-text-button" data-action="scores">计分表</button></div>`,
     won ? 'hz-panel-won' : 'hz-panel-lost');
-    announce(`Game over. ${headline}`);
+    announce(`对局结束。${headline}`);
     prompt('');
     if (wonReported) return;
     wonReported = true;
@@ -903,15 +903,15 @@ export async function mountHearts(container, { daily = false, onWin = () => {}, 
     if (state.phase === 'pass') {
       markTurn(0);
       showPass(state);
-      prompt(`Choose 3 to pass ${state.passDirection}`);
+      prompt(`选择 3 张牌向${({left:'左',across:'对面',right:'右',hold:'不传'})[state.passDirection]}传出`);
     } else if (state.phase === 'play' && state.turn === 0) {
       markTurn(0);
       hidePass();
       const led = state.trick.length ? suitOf(state.trick[0].card) : null;
       const canFollow = led !== null && state.cards.some((card) => suitOf(card) === led);
-      const text = state.tricksPlayed === 0 && !state.trick.length ? 'Lead the two of clubs'
-        : led === null ? 'Your lead'
-          : canFollow ? `Your turn · follow ${SUIT_PLURALS[led]}` : `Your turn · no ${SUIT_PLURALS[led]}, play anything`;
+      const text = state.tricksPlayed === 0 && !state.trick.length ? "首出梅花 2"
+        : led === null ? "由你首出"
+          : canFollow ? `轮到你，请跟${SUIT_PLURALS[led]}` : `轮到你。没有${SUIT_PLURALS[led]}，可以垫其他牌`;
       prompt(text);
       announce(`${lastEvent ? `${lastEvent} ` : ''}${text}.`);
       lastEvent = '';
@@ -947,8 +947,8 @@ export async function mountHearts(container, { daily = false, onWin = () => {}, 
     afterSync();
     if (!alive(token)) return;
     if (state.passDirection === 'hold') {
-      showMoment('<span>No passing this hand</span>', 'hz-moment-note', 1700);
-      announce('This hand, everyone keeps their cards.');
+      showMoment("<span>本手不传牌</span>", 'hz-moment-note', 1700);
+      announce("本手所有人保留自己的牌。");
       await wait(pace().hold);
     }
   }
@@ -963,7 +963,7 @@ export async function mountHearts(container, { daily = false, onWin = () => {}, 
     hidePanel();
     if (!quiet) playSound('new-game');
     notify(onStart);
-    announce(daily ? 'Today’s game, the same for everyone. Pass three cards to begin.' : `Deal #${seed}. Good luck: pass three cards to begin.`);
+    announce(daily ? "所有人今天使用同一局。先传出三张牌。" : `第 ${seed} 局。先选三张牌传出。`);
     const state = engine.state();
     return run(async (token) => {
       await dealHand(state, token);
@@ -975,7 +975,7 @@ export async function mountHearts(container, { daily = false, onWin = () => {}, 
     if (!engine.nextHand()) return;
     hidePanel();
     const state = engine.state();
-    announce(state.passDirection === 'hold' ? `Hand ${state.handNumber + 1}. Everyone keeps their cards.` : `Hand ${state.handNumber + 1}. Pass three cards ${state.passDirection}.`);
+    announce(state.passDirection === 'hold' ? `第 ${state.handNumber + 1} 手，不传牌。` : `第 ${state.handNumber + 1} 手，向${({left:'左',across:'对面',right:'右',hold:'不传'})[state.passDirection]}传三张。`);
     run(async (token) => {
       await dealHand(state, token);
       if (alive(token)) await animatePlays(0, state, token);
@@ -988,9 +988,9 @@ export async function mountHearts(container, { daily = false, onWin = () => {}, 
     for (const el of felt.querySelectorAll('.hz-hint')) el.classList.remove('hz-hint');
   }
   function hint() {
-    if (busy) { announce('One moment: the others are still playing.'); return; }
+    if (busy) { announce("请稍候，其他玩家正在出牌。"); return; }
     const suggestion = engine.hint();
-    if (!suggestion) { announce(engine.state().phase === 'play' ? 'Wait for your turn.' : 'Nothing to suggest right now.'); return; }
+    if (!suggestion) { announce(engine.state().phase === 'play' ? "请等待你的回合。" : "暂无提示。"); return; }
     clearHint();
     const cards = suggestion.type === 'pass' ? suggestion.cards : [suggestion.card];
     for (const card of cards) {
@@ -1000,7 +1000,7 @@ export async function mountHearts(container, { daily = false, onWin = () => {}, 
       el.classList.add('hz-hint');
     }
     hintTimer = setTimeout(clearHint, 2400);
-    announce(suggestion.type === 'pass' ? `Try passing ${listCards(cards)}.` : `Try the ${cardName(cards[0])}.`);
+    announce(suggestion.type === 'pass' ? `建议传出${listCards(cards)}。` : `建议打出${cardName(cards[0])}。`);
     if (cards.length) focusHandCardQuietly(cards[0]);
   }
   function focusHandCardQuietly(card) {
@@ -1019,8 +1019,8 @@ export async function mountHearts(container, { daily = false, onWin = () => {}, 
       return `<tr><th scope="row">${index + 1}</th>${totals.map((total, seat) => `<td${seat === moon ? ' class="hz-moon-cell" title="Shot the moon"' : ''}><span class="hz-sheet-total">${total}</span><span class="hz-sheet-hand">${hand[seat] ? `+${hand[seat]}` : '0'}</span></td>`).join('')}</tr>`;
     });
     const best = Math.min(...state.scores);
-    const body = rows.length ? rows.join('') : `<tr><td colspan="5" class="hz-sheet-empty">No hands finished yet. Scores appear here after each hand.</td></tr>`;
-    host.querySelector('.hz-sheet').innerHTML = `<table class="hz-sheet-table"><thead><tr><th scope="col">Hand</th>${NAMES.map((name, seat) => `<th scope="col"${rows.length && state.scores[seat] === best ? ' class="hz-leader"' : ''}>${name}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table>`;
+    const body = rows.length ? rows.join('') : `<tr><td colspan="5" class="hz-sheet-empty">暂无已结束的手牌。每手结束后会在这里计分。</td></tr>`;
+    host.querySelector('.hz-sheet').innerHTML = `<table class="hz-sheet-table"><thead><tr><th scope="col">本手</th>${NAMES.map((name, seat) => `<th scope="col"${rows.length && state.scores[seat] === best ? ' class="hz-leader"' : ''}>${name}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table>`;
   }
 
   /* ── menus, dialogs and keys ────────────────────────────────────────── */
@@ -1078,7 +1078,7 @@ export async function mountHearts(container, { daily = false, onWin = () => {}, 
     if (form.dataset.form === 'deal') {
       event.preventDefault();
       const value = Number(form.elements.deal.value);
-      if (!validDeal(value)) { form.querySelector('[data-deal-error]').textContent = 'Choose a whole number from 1 to 2,147,483,647.'; return; }
+      if (!validDeal(value)) { form.querySelector('[data-deal-error]').textContent = "请输入 1 到 2,147,483,647 之间的整数。"; return; }
       form.closest('dialog').close();
       newGame(value);
     } else if (form.dataset.form === 'options') {
@@ -1107,7 +1107,7 @@ export async function mountHearts(container, { daily = false, onWin = () => {}, 
     const key = event.key.toLowerCase();
     if (event.key === 'F2') { event.preventDefault(); newGame(); }
     else if (event.key === 'F1') { event.preventDefault(); showDialog('help'); }
-    else if ((event.ctrlKey || event.metaKey) && key === 'z') { event.preventDefault(); announce('Hearts has no undo, just like the original. Every card counts.'); }
+    else if ((event.ctrlKey || event.metaKey) && key === 'z') { event.preventDefault(); announce("红心大战不能撤销出牌。"); }
     else if (event.ctrlKey || event.metaKey || event.altKey) return;
     else if (event.key === 'Escape' && openMenu) closeMenus();
     else if (busy && (event.key === ' ' || event.key === 'Enter' || event.key === 'Escape')) hurry();
@@ -1124,7 +1124,7 @@ export async function mountHearts(container, { daily = false, onWin = () => {}, 
   layout = computeLayout();
   writeLayout();
   renderChrome();
-  announce(daily ? 'Today’s game, the same for everyone. Pass three cards to begin.' : 'Avoid hearts and the queen of spades. Choose three cards to pass.');
+  announce(daily ? "所有人今天使用同一局。先传出三张牌。" : "小心红心和黑桃 Q。先选三张牌传出。");
   const first = engine.state();
   notify(onStart);
   await run(async (token) => {
@@ -1168,14 +1168,14 @@ export async function mountHearts(container, { daily = false, onWin = () => {}, 
       view = viewOf(state);
       layout = null;
       await render({ animate: false });
-      lastEvent = 'Replay loaded.';
-      announce(chrome ? '' : 'Replay loaded. Pick up where this game left off.');
+      lastEvent = "已载入回放。";
+      announce(chrome ? '' : "已载入回放，可以接着玩。");
       settle();
     },
     newGame: (deal = null) => newGame(deal, { quiet: true }),
     hint,
     state: () => engine.state(),
-    shortcuts: [['← →', 'Choose a card'], ['Enter', 'Play it, or choose it to pass'], ['Drag up', 'Play a card'], ['Space · Enter', 'Hurry the other players'], ['H', 'Hint'], ['T', 'Score sheet'], ['F2', 'New game'], ['F1', 'How to play']],
+    shortcuts: [['← →', "选择一张牌"], ['Enter', "打出或选中传给对手"], ["向上拖动", "出牌"], ["空格或回车", "加快电脑出牌"], ['H', "提示"], ['T', "计分表"], ['F2', "新游戏"], ['F1', "玩法说明"]],
     setFidelity(value) {
       fidelity = value === 'pixels' ? 'pixels' : 'crisp';
       host.dataset.fidelity = fidelity;

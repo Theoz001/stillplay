@@ -1,0 +1,100 @@
+/* Keep the desktop game table prominent at the selected scale. */
+.play-area .table-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-inline: 6px;
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 500;
+}
+.play-area .table-size select {
+  min-height: 30px;
+  padding-inline: 5px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background-color: var(--white);
+  cursor: pointer;
+}
+
+/* Larger tables scroll inside the play area. The document and toolbar remain viewport-width. */
+.play-area .stage-surface {
+  display: block;
+  overflow-x: auto;
+  container-type: inline-size;
+}
+.play-area .stage-game {
+  width: max-content;
+  min-width: 100%;
+  --table-height-scale: var(--table-scale, 1);
+}
+.play-area .spider-root { --table-width: 940px; }
+.play-area .solitaire-root { --table-width: 680px; }
+.play-area .freecell-root { --table-width: 640px; }
+.play-area .hearts-root { --table-width: 680px; }
+.play-area :is(.spider-root, .solitaire-root, .freecell-root, .hearts-root) {
+  --table-base-width: min(var(--table-width), 100cqw);
+  width: calc(var(--table-base-width) * var(--table-scale, 1));
+  max-width: none;
+}
+/* The Mac window already scales with the table. Use the full viewport, with scrolling on smaller screens. */
+html[data-native-window] .play-area > .stage { max-width: none; }
+html[data-native-window] .play-area .stage-game { --table-height-scale: 1; }
+html[data-native-window] .play-area :is(.spider-root, .solitaire-root, .freecell-root, .hearts-root) {
+  --table-base-width: var(--table-width);
+}
+.play-area .hz-felt {
+  --hz-max-width: 76px;
+  --hz-w: round(down, clamp(40px, calc((100cqw - 26px - 2 * var(--hz-pad)) / 4.9), calc(var(--hz-max-width) * var(--table-scale, 1))), 1px);
+}
+
+@media (min-width: 761px) {
+  html[data-route="game"] .site-header { height: 50px; }
+  .play-head.wrap { padding-block: 4px 8px; }
+  .play-head .crumbs { margin-bottom: 5px; }
+  .play-title { align-items: baseline; gap: 4px 24px; }
+  .play-title h1 { font-size: 30px; }
+  .play-title p { margin: 0; }
+
+  .play-area > .stage { padding-inline: 12px; }
+  .play-area .chrome { padding-block: 5px; }
+  .play-area[data-game-stage] .stage-surface {
+    min-height: 0;
+    padding: 8px 8px 16px;
+  }
+
+  .play-area .spider-root {
+    --table-width: 1040px;
+    /* Reserve space for the stock, score and controls. The game already adapts long stacks to the available height. */
+    --sp-tableau-h: clamp(calc(var(--sp-min-rows, 2.3) * var(--sp-card-h)), calc((100svh - 322px) * var(--table-height-scale) - var(--sp-card-h)), calc(3.7 * var(--sp-card-h)));
+  }
+  html[data-native-window] .play-area .spider-root { --sp-min-rows: 2; }
+  .play-area .solitaire-root { --table-width: 810px; }
+  .play-area .sol-felt {
+    --sol-frame-space: calc(2 * var(--sol-pad) + 2 * var(--sol-gap));
+    min-height: clamp(calc(3 * var(--sol-card-h) + var(--sol-frame-space)), calc((100svh - 273px) * var(--table-height-scale)), calc(4 * var(--sol-card-h) + var(--sol-frame-space)));
+  }
+  .play-area .freecell-root { --table-width: 780px; }
+  .play-area .hearts-root { --table-width: 800px; }
+  .play-area .hz-felt { --hz-max-width: 84px; }
+
+  .play-area :is(.spider-root, .solitaire-root, .freecell-root, .hearts-root, .game-window) { font-size: 14px; }
+  .play-area :is(.sp-titlebar, .sol-titlebar, .fc-titlebar, .hz-titlebar, .game-titlebar) {
+    height: 29px;
+    font-size: 14px;
+  }
+  .play-area :is(.sp-menubar, .sol-menubar, .fc-menubar, .hz-menubar, .game-menubar) { height: 31px; }
+  .play-area .game-menubar .menu-toggle { font-size: 14px; }
+  .play-area .game-window { --mine-tile-scale: 1.2; }
+  .play-area :is(.sp-menu-mode, .sol-menu-mode, .fc-menu-deal, .hz-menu-mode) { font-size: 12px; }
+  .play-area :is(.sp-dropdown, .sol-dropdown, .fc-dropdown, .hz-dropdown, .game-menu) {
+    top: 27px;
+    width: 226px;
+  }
+  .play-area :is(.sp-dropdown, .sol-dropdown, .fc-dropdown, .hz-dropdown, .game-menu) button { font-size: 14px; }
+  .play-area :is(.sp-statusbar, .sol-statusbar, .fc-statusbar, .hz-statusbar, .game-statusbar) {
+    height: 28px;
+    font-size: 12px;
+  }
+  .play-area :is(.sp-message, .sol-message, .fc-message, .hz-message, .sp-dialog, .sol-dialog, .fc-dialog, .hz-dialog) { font-size: 13px; }
+}

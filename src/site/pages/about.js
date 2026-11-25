@@ -4,30 +4,30 @@ import { escape } from '../ui/dom.js';
 
 function list(titles) {
   if (titles.length <= 1) return titles.join('');
-  return `${titles.slice(0, -1).join(', ')} and ${titles.at(-1)}`;
+  return `${titles.slice(0, -1).join(', ')}和${titles.at(-1)}`;
 }
 
 export function render(main) {
   const ready = playable().map((game) => game.title);
   const coming = siteGames().length - ready.length;
   main.innerHTML = `<article class="article">
-    <p class="eyebrow">A small collection with a long memory</p>
-    <h1>Some things are<br><em>worth keeping.</em></h1>
-    <p class="lede">A field of grey squares. A green table. Five minutes that quietly become twenty.</p>
-    <p>Stillplay is a homage to the small games that came with Windows XP. They sat on almost every computer for years, and plenty of us learned to use a mouse on them. Here you can play ${escape(list(ready))} again in a browser tab, with nothing to install.${coming ? ` ${coming === 1 ? 'One more follows' : 'The rest follow'} once ${coming === 1 ? 'it plays' : 'each plays'} well.` : ''}</p>
+    <p class="eyebrow">关于 Stillplay</p>
+    <h1>值得珍藏的<br><em>经典游戏</em></h1>
+    <p class="lede">一片雷区，一桌纸牌，重温熟悉的小游戏。</p>
+    <p>Stillplay 是对 Windows XP 自带小游戏的致敬。当年，许多人正是玩这些游戏学会了用鼠标。现在可以在这台 Mac 上重玩${escape(list(ready))}。${coming ? ` ${coming === 1 ? 'One more follows' : 'The rest follow'} once ${coming === 1 ? 'it plays' : 'each plays'} well.` : ''}</p>
 
-    <h2>Every day, a shared game.</h2>
-    <p>Each game has a daily board or deal, worked out from the date, so everyone in the world gets the same one. Solve it on consecutive days to build a streak. When you win, you can share your time, or a replay link that lets a friend watch your game move by move.</p>
+    <h2>每日挑战</h2>
+    <p>每款游戏根据日期生成当天的牌局或雷区，所有玩家拿到的题目相同。连续通关可以累积连胜天数。获胜后可以分享用时或回放。</p>
 
-    <h2>Made from scratch.</h2>
-    <p>Everything here is our own work. The rules of each game are written in C and compiled to WebAssembly, and the same code runs in your browser and in a small command-line player we use for testing. Every card, tile and icon is drawn in code, and the sounds were made for this project. We ship no Microsoft bitmaps, icons, sounds or executables.</p>
-    <p>“Original pixels” mode draws our artwork at the old resolution, for the period feel. “Crisp” draws the same artwork for modern screens.</p>
+    <h2>游戏如何制作</h2>
+    <p>原作者用 C 编写规则并编译为 WebAssembly。牌面、方格、图标与音效均由项目自行制作。</p>
+    <p>“像素牌面”还原早年的低分辨率画面；“清晰牌面”使用相同图案，适合高分辨率屏幕。</p>
 
-    <h2>Yours, and offline.</h2>
-    <p>There are no accounts, no ads and no server keeping score. Your stats, streaks and settings stay in this browser. After your first visit the games work offline, and you can add Stillplay to your home screen like an app.</p>
+    <h2>本机离线游玩</h2>
+    <p>无账号、无广告。游戏、中文界面和音效随应用一起安装，统计和设置保存在这台 Mac 上。</p>
 
-    <h2>Open, and small on purpose.</h2>
-    <p>The project is open source under the MIT licence. Fonts keep their own licences. The source is on <a href="https://github.com/btahir/stillplay">GitHub</a>, and the site is hosted on <a href="https://shiptiffin.com/?ref=stillplay">ShipTiffin</a>.</p>
-    <p class="source-note">An independent fan project, not affiliated with or endorsed by Microsoft. Windows XP, Minesweeper, FreeCell and the other product names are used only to identify the games this project pays tribute to.</p>
+    <h2>开源项目</h2>
+    <p>Stillplay 采用 MIT 许可证，字体沿用各自的许可。源码见 <a href="https://github.com/btahir/stillplay">GitHub</a>，原站托管于 <a href="https://shiptiffin.com/?ref=stillplay">ShipTiffin</a>.</p>
+    <p class="source-note">这是独立爱好者项目，与微软无隶属关系。文中的产品名称用于说明游戏渊源。</p>
   </article>`;
 }

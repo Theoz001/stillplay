@@ -22,28 +22,28 @@ export function render(main, { game, daily }) {
 
   main.innerHTML = `
   <section class="play-head wrap">
-    <nav class="crumbs" aria-label="Breadcrumb"><a href="/#collection">Games</a><span aria-hidden="true">/</span>${daily ? `<a href="${game.path}">${escape(game.title)}</a><span aria-hidden="true">/</span><span aria-current="page">Daily</span>` : `<span aria-current="page">${escape(game.title)}</span>`}</nav>
+    <nav class="crumbs" aria-label="导航路径"><a href="/#collection">游戏</a><span aria-hidden="true">/</span>${daily ? `<a href="${game.path}">${escape(game.title)}</a><span aria-hidden="true">/</span><span aria-current="page">每日挑战</span>` : `<span aria-current="page">${escape(game.title)}</span>`}</nav>
     <div class="play-title">
-      <h1>${daily ? `Daily ${escape(game.title)}` : escape(game.title)}<em>.</em></h1>
-      <p>${daily ? `${escape(formatDate(today, { weekday: 'long', day: 'numeric', month: 'long' }))}. The same ${escape(game.dailyNoun)} for everyone, all day. A new one at midnight UTC.` : escape(game.intro)}</p>
+      <h1>${daily ? `每日挑战 · ${escape(game.title)}` : escape(game.title)}</h1>
+      <p>${daily ? `${escape(formatDate(today, { weekday: 'long', day: 'numeric', month: 'long' }))}。所有玩家今天使用同一局，每天北京时间 8 点更新。` : escape(game.intro)}</p>
     </div>
   </section>
   <section class="play-area" aria-label="${escape(game.title)}" data-game-stage="${game.id}"></section>
   <section class="play-notes wrap">
     <div class="howto">
-      <p class="section-kicker">How to play</p>
+      <p class="section-kicker">玩法说明</p>
       ${game.howTo.map((paragraph) => `<p>${escape(paragraph)}</p>`).join('')}
-      <p class="howto-small">Press <kbd>?</kbd> for keyboard shortcuts. The rules run on our own C code, compiled to WebAssembly; the same module powers the browser and the command line.</p>
+      <p class="howto-small">按 <kbd>?</kbd> 可查看键盘快捷键。游戏规则在本机运行。</p>
     </div>
-    <aside class="replay-tools" aria-label="Replays">
-      <p class="section-kicker">Replays</p>
-      <p>Every move is recorded. Save a game to a small file, or load one to see it again, move by move.</p>
+    <aside class="replay-tools" aria-label="回放">
+      <p class="section-kicker">回放</p>
+      <p>每一步都会被记录。你可以将牌局保存为文件，或载入回放逐步查看。</p>
       <div class="replay-buttons">
-        <button type="button" class="button" id="export-replay">${icon('download', { size: 16 })}Save replay</button>
-        <button type="button" class="button" id="import-replay">${icon('upload', { size: 16 })}Load replay</button>
+        <button type="button" class="button" id="export-replay">${icon('download', { size: 16 })}保存回放</button>
+        <button type="button" class="button" id="import-replay">${icon('upload', { size: 16 })}载入回放</button>
         <input id="replay-input" type="file" accept=".json,application/json" hidden>
       </div>
-      <p class="replay-daily"><a class="text-link" href="${daily ? game.path : game.dailyPath}">${daily ? `Play a regular game of ${escape(game.title)}` : `Try today’s daily ${escape(game.dailyNoun)}`} ${icon('arrow', { size: 12 })}</a></p>
+      <p class="replay-daily"><a class="text-link" href="${daily ? game.path : game.dailyPath}">${daily ? `玩普通局 · ${escape(game.title)}` : `试试今日挑战`} ${icon('arrow', { size: 12 })}</a></p>
     </aside>
   </section>`;
 
@@ -54,15 +54,15 @@ export function render(main, { game, daily }) {
     if (location.hash.startsWith('#replay=')) {
       try {
         const replay = decodeReplay(location.hash.slice(8));
-        if (replay.game !== game.id) throw new Error(`Open ${replay.game} to load this replay.`);
+        if (replay.game !== game.id) throw new Error(`请先打开 ${replay.game} 再载入这份回放。`);
         await stage.handle.loadReplay(replay);
-        showToast('Replay loaded. Pick up where it left off.');
+        showToast("已载入回放，可以接着玩。");
       } catch {
-        showToast('This replay link could not be read.');
+        showToast("无法读取这个回放链接。");
       }
     }
   }).catch((error) => {
-    area.innerHTML = `<div class="wrap loading-game" role="alert">${escape(game.title)} could not start here. ${escape(error.message || '')}</div>`;
+    area.innerHTML = `<div class="wrap loading-game" role="alert">${escape(game.title)} 启动失败。${escape(error.message || '')}</div>`;
     console.error(error);
   });
 
@@ -70,7 +70,7 @@ export function render(main, { game, daily }) {
     await ready;
     try {
       download(`stillplay-${game.id}-replay.json`, JSON.stringify(stage.handle.exportReplay(), null, 2));
-    } catch { showToast('There is no replay to save yet.'); }
+    } catch { showToast("当前没有可以保存的回放。"); }
   }, { signal });
   const input = main.querySelector('#replay-input');
   main.querySelector('#import-replay').addEventListener('click', () => input.click(), { signal });
@@ -78,13 +78,13 @@ export function render(main, { game, daily }) {
     try {
       const file = input.files[0];
       if (!file) return;
-      if (file.size > 1024 * 1024) throw new Error('Replay exceeds the 1 MiB limit.');
+      if (file.size > 1024 * 1024) throw new Error("回放文件不能超过 1 MiB。");
       const replay = parseReplay(await file.text());
-      if (replay.game !== game.id) throw new Error(`Open ${replay.game} to load this replay.`);
+      if (replay.game !== game.id) throw new Error(`请先打开 ${replay.game} 再载入这份回放。`);
       await ready;
-      if (typeof stage?.handle?.loadReplay !== 'function') throw new Error('This game cannot load replays yet.');
+      if (typeof stage?.handle?.loadReplay !== 'function') throw new Error("此游戏暂不支持载入回放。");
       await stage.handle.loadReplay(replay);
-      showToast('Replay restored through the game core.');
+      showToast("已恢复回放。");
     } catch (error) {
       showToast(error.message);
     } finally {

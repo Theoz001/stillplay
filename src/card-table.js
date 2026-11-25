@@ -186,9 +186,9 @@ export function createCardTable(root, options = {}) {
     return faces.get(card);
   };
   const pileLabel = (id) => piles.get(id)?.label ?? id;
-  const entryLabel = (entry) => entry.faceUp ? cardName(entry.card) : 'a face-down card';
+  const entryLabel = (entry) => entry.faceUp ? cardName(entry.card) : "一张盖住的牌";
   function defaultCardLabel(card, faceUp, pileId, index) {
-    return faceUp ? `${cardName(card)}, ${pileLabel(pileId)}` : `Face-down card, ${pileLabel(pileId)}${index >= 0 ? '' : ''}`;
+    return faceUp ? `${cardName(card)}, ${pileLabel(pileId)}` : `盖住的牌，${pileLabel(pileId)}${index >= 0 ? '' : ''}`;
   }
   const cardLabel = opts.cardLabel ?? defaultCardLabel;
 
@@ -591,13 +591,13 @@ export function createCardTable(root, options = {}) {
     updateDropHighlight();
     if (!quiet && next) {
       const lead = piles.get(next.pile).entries[next.index];
-      say(opts.messages.pick?.(next) ?? `${cardName(lead.card)}${next.count > 1 ? ` and ${next.count - 1} more` : ''} picked up. Choose where to put ${next.count > 1 ? 'them' : 'it'}.`);
+      say(opts.messages.pick?.(next) ?? `已选中${cardName(lead.card)}${next.count > 1 ? ` 及另外 ${next.count - 1} 张牌` : ''}，请选择放置位置。`);
     }
   }
   function cancelHeld() {
     if (!held) return;
     setHeld(null, true);
-    say(opts.messages.cancel?.() ?? 'Put back.');
+    say(opts.messages.cancel?.() ?? "已取消选择。");
   }
   function tryDrop(from, toPile) {
     if (from.pile !== toPile && opts.canDrop(from, toPile)) {
@@ -614,7 +614,7 @@ export function createCardTable(root, options = {}) {
     emit('invalid', 80);
     const lead = piles.get(from.pile)?.entries[from.index];
     if (lead) shake(from.pile, from.index);
-    say(opts.messages.illegal?.(from, toPile) ?? `${lead ? cardName(lead.card) : 'That card'} can’t go on ${pileLabel(toPile)}.`);
+    say(opts.messages.illegal?.(from, toPile) ?? `${lead ? cardName(lead.card) : "这张牌"}不能放到${pileLabel(toPile)}上。`);
   }
   function shake(pileId, index) {
     if (reduced()) return;
@@ -880,7 +880,7 @@ export function createCardTable(root, options = {}) {
     if (commit && current.target && tryDrop(current.from, current.target)) return;
     if (commit) {
       emit('invalid', 80);
-      say(opts.messages.illegal?.(current.from, current.target) ?? 'That card goes back where it was.');
+      say(opts.messages.illegal?.(current.from, current.target) ?? "已放回原处。");
     }
     // Snap back with a little spring.
     for (const entry of current.entries) {
@@ -1014,7 +1014,7 @@ export function createCardTable(root, options = {}) {
       await Promise.all([...new Set(queue.map((item) => item.entry.card))].map(async (card) => sprites.set(card, await sprite(card, cardW, cardH, scale))));
     } catch { canvas.remove(); return false; }
     if (!canvas.isConnected) return false;
-    say('Every card is home. Press any key or tap to skip the celebration.');
+    say("全部收齐。按任意键或点击即可跳过庆祝动画。");
     return new Promise((done) => {
       const unit = cardW / 70;
       const gravity = 0.36 * unit;
@@ -1085,7 +1085,7 @@ export function createCardTable(root, options = {}) {
       const spots = layoutPile(pile, rootRect);
       if (pile.grow) pile.element.style.setProperty('--ct-extent', `${Math.ceil(pile.extent)}px`);
       pile.entries.forEach((entry, index) => {
-        if (entry.move) return;
+        // Update the resting position even when an animation is still drawing the card.
         entry.x = spots[index].x; entry.y = spots[index].y;
         entry.el.style.transform = `translate(${entry.x}px, ${entry.y}px)`;
       });

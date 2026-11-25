@@ -21,8 +21,8 @@ function apply(theme) {
   const button = document.querySelector('#theme-toggle');
   if (button) {
     const next = theme === 'dark' ? 'light' : 'dark';
-    button.setAttribute('aria-label', `Switch to ${next} theme`);
-    button.title = `Switch to ${next} theme`;
+    button.setAttribute('aria-label', `切换到${next === 'dark' ? '深色' : '浅色'}外观`);
+    button.title = `切换到${next === 'dark' ? '深色' : '浅色'}外观`;
     button.innerHTML = icon(theme === 'dark' ? 'sun' : 'moon', { size: 18 });
   }
 }

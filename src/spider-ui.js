@@ -12,18 +12,18 @@
 import { createSpider, loadSpiderReplay } from './spider-core.js';
 import { createCardTable } from './card-table.js';
 import { dailyDeal } from './shared.js';
-import { cardSvg, cardName, suitSvg, RANKS, NAMES, SUITS } from './cards.js';
+import { cardSvg, cardName, suitSvg, RANKS, NAMES, SUIT_LABELS as SUITS } from './cards.js';
 
 const SETTINGS_KEY = 'stillplay-spider-options';
 const COLUMNS = Array.from({ length: 10 }, (_, i) => `t${i}`);
 const RUN_PILES = Array.from({ length: 8 }, (_, i) => `r${i}`);
 const SUIT_CHOICES = [1, 2, 4];
-const SUIT_WORDS = { 1: 'One suit', 2: 'Two suits', 4: 'Four suits' };
+const SUIT_WORDS = { 1: "单花色", 2: "双花色", 4: "四花色" };
 const COMPACT_WIDTH = 520; // matches the container query in spider.css
 const CASCADE_CARDS = 24; // the kings, queens and jacks bounce; the rest stay put
 
 const capital = (text) => text.charAt(0).toUpperCase() + text.slice(1);
-const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
+const plural = (count, word) => `${count} ${({card:'张牌',move:'步',run:'组',deal:'排',heart:'张红心',point:'分',hand:'手',选中的牌:'张选中的牌'})[word] || word}`;
 const clock = (seconds) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 const validDeal = (value) => Number.isInteger(value) && value >= 1 && value <= 2147483647;
 const wait = (ms) => new Promise((done) => setTimeout(done, ms));
@@ -78,7 +78,7 @@ function faceSvg(card) {
   return `${full.slice(0, open)}<g class="sp-face-full">${full.slice(open, close)}</g>${compactFace(card)}</svg>`;
 }
 
-const pileLabel = (id) => id === 's' ? 'the stock' : id[0] === 'r' ? `completed run ${Number(id[1]) + 1}` : `column ${Number(id.slice(1)) + 1}`;
+const pileLabel = (id) => id === 's' ? "牌库" : id[0] === 'r' ? `已完成的第 ${Number(id[1]) + 1} 组` : `第 ${Number(id.slice(1)) + 1} 列`;
 
 const ICONS = {
   window: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="2.5" width="12" height="17" rx="1.2" fill="#2c6249" stroke="#fff" stroke-width=".8"/><rect x="9" y="4.5" width="12" height="17" rx="1.2" fill="#fff" stroke="#142b64"/><path d="M15 8.6c-1.9 2.4-4.4 4-4.4 6 0 1.4 1.5 2.1 3 1.2-.1.8-.4 1.3-1.2 1.7h5.2c-.8-.4-1.1-.9-1.2-1.7 1.5.9 3 .2 3-1.2 0-2-2.5-3.6-4.4-6Z" fill="#17201b"/></svg>',
@@ -86,89 +86,89 @@ const ICONS = {
 
 function markup(daily, chrome) {
   const slot = (label, extra = '') => `<button type="button" class="sp-slot" data-ct-target aria-label="${label}">${extra}</button>`;
-  return `<section class="sp-window" aria-label="Spider Solitaire game">
-  <div class="sp-titlebar"><span class="sp-title-icon">${ICONS.window}</span><span class="sp-title">Spider Solitaire</span><span class="sp-title-controls" aria-hidden="true"><i></i><i></i><i>×</i></span></div>
+  return `<section class="sp-window" aria-label="蜘蛛纸牌牌桌">
+  <div class="sp-titlebar"><span class="sp-title-icon">${ICONS.window}</span><span class="sp-title">蜘蛛纸牌</span><span class="sp-title-controls" aria-hidden="true"><i></i><i></i><i>×</i></span></div>
   <div class="sp-menubar">
-    <div class="sp-menu-wrap"><button type="button" class="sp-menu-trigger" data-action="menu-game" aria-expanded="false" aria-haspopup="menu"><u>G</u>ame</button>
+    <div class="sp-menu-wrap"><button type="button" class="sp-menu-trigger" data-action="menu-game" aria-expanded="false" aria-haspopup="menu">游戏</button>
       <div class="sp-dropdown" role="menu" data-menu="game" hidden>
-        <button role="menuitem" type="button" data-action="new">New game <span>F2</span></button>
-        <button role="menuitem" type="button" data-action="deal">Choose a deal…</button>
+        <button role="menuitem" type="button" data-action="new">新游戏 <span>F2</span></button>
+        <button role="menuitem" type="button" data-action="deal">选择牌局…</button>
         <div class="sp-menu-separator" role="separator"></div>
-        <button role="menuitem" type="button" data-action="undo">Undo <span>Ctrl+Z</span></button>
-        <button role="menuitem" type="button" data-action="deal-row">Deal a new row <span>D</span></button>
-        <button role="menuitem" type="button" data-action="hint">Show a move <span>M</span></button>
+        <button role="menuitem" type="button" data-action="undo">撤销 <span>Ctrl+Z</span></button>
+        <button role="menuitem" type="button" data-action="deal-row">发一排牌 <span>D</span></button>
+        <button role="menuitem" type="button" data-action="hint">查看可走的一步 <span>M</span></button>
         <div class="sp-menu-separator" role="separator"></div>
-        <button role="menuitem" type="button" data-action="options">Options…</button>
+        <button role="menuitem" type="button" data-action="options">选项…</button>
       </div></div>
-    <div class="sp-menu-wrap"><button type="button" class="sp-menu-trigger" data-action="menu-help" aria-expanded="false" aria-haspopup="menu"><u>H</u>elp</button>
+    <div class="sp-menu-wrap"><button type="button" class="sp-menu-trigger" data-action="menu-help" aria-expanded="false" aria-haspopup="menu">帮助</button>
       <div class="sp-dropdown" role="menu" data-menu="help" hidden>
-        <button role="menuitem" type="button" data-action="help">How to play <span>F1</span></button>
-        <button role="menuitem" type="button" data-action="about">About this version</button>
+        <button role="menuitem" type="button" data-action="help">玩法说明 <span>F1</span></button>
+        <button role="menuitem" type="button" data-action="about">关于此版本</button>
       </div></div>
-    <span class="sp-menu-mode">${daily ? 'Daily · One suit' : ''}</span>
+    <span class="sp-menu-mode">${daily ? "每日挑战 · 单花色" : ''}</span>
   </div>
   <div class="sp-felt">
     <div class="sp-tableau">
-      ${COLUMNS.map((id, i) => `<div class="sp-pile sp-column" data-pile-id="${id}">${slot(`Column ${i + 1}, empty. Any card or run can go here.`)}</div>`).join('')}
+      ${COLUMNS.map((id, i) => `<div class="sp-pile sp-column" data-pile-id="${id}">${slot(`第 ${i + 1} 列为空，可移入任意一张牌或一组连续牌。`)}</div>`).join('')}
     </div>
     <div class="sp-bottom">
-      <div class="sp-done-area" role="img" aria-label="No runs completed yet">
+      <div class="sp-done-area" role="img" aria-label="尚未收齐任何一组">
         <span class="sp-done-slot" aria-hidden="true"></span>
         ${RUN_PILES.map((id, i) => `<div class="sp-pile sp-done" data-pile-id="${id}" style="--sp-run:${i}"></div>`).join('')}
       </div>
-      <div class="sp-pile sp-stock" data-pile-id="s">${slot('No deals left', '<span class="sp-stock-empty" aria-hidden="true"></span>')}</div>
+      <div class="sp-pile sp-stock" data-pile-id="s">${slot("没有剩余发牌", '<span class="sp-stock-empty" aria-hidden="true"></span>')}</div>
     </div>
     <div class="sp-panel sp-stuck" role="status" hidden></div>
     <div class="sp-panel sp-win" role="status" hidden></div>
   </div>
-  <div class="sp-statusbar"><span class="sp-status-progress">0 of 8 runs</span><span class="sp-status-score">Score: 500</span><span class="sp-status-moves">Moves: 0</span></div>
+  <div class="sp-statusbar"><span class="sp-status-progress">已完成 0/8 组</span><span class="sp-status-score">得分：500</span><span class="sp-status-moves">步数：0</span></div>
 </section>
 <div class="sp-below">
   ${chrome ? '' : `<div class="sp-quick-actions">
-    <button type="button" data-action="undo">Undo</button><span aria-hidden="true">·</span>
-    <button type="button" data-action="hint">Hint</button><span aria-hidden="true">·</span>
-    <button type="button" data-action="deal-row">Deal a row</button><span aria-hidden="true">·</span>
-    <button type="button" data-action="options">Options</button><span aria-hidden="true">·</span>
-    <button type="button" data-action="deal">Choose a deal</button>
+    <button type="button" data-action="undo">撤销</button><span aria-hidden="true">·</span>
+    <button type="button" data-action="hint">提示</button><span aria-hidden="true">·</span>
+    <button type="button" data-action="deal-row">发一排牌</button><span aria-hidden="true">·</span>
+    <button type="button" data-action="options">选项</button><span aria-hidden="true">·</span>
+    <button type="button" data-action="deal">选择牌局</button>
   </div>`}
   <p class="sp-message" role="status" aria-live="polite"></p>
 </div>
 <dialog class="sp-dialog" data-dialog="deal" aria-labelledby="sp-deal-title"><form method="dialog" class="sp-dialog-form" data-form="deal">
-  <h2 id="sp-deal-title">Choose a deal</h2><p>Every number is its own shuffle. Share one with a friend, with the same number of suits, and you both get the same cards.</p>
-  <label for="sp-deal-input">Deal number</label><input id="sp-deal-input" name="deal" type="number" min="1" max="2147483647" step="1" required>
+  <h2 id="sp-deal-title">选择牌局</h2><p>相同的编号和花色数会生成相同的牌局，可将编号分享给朋友。</p>
+  <label for="sp-deal-input">牌局编号</label><input id="sp-deal-input" name="deal" type="number" min="1" max="2147483647" step="1" required>
   <p class="sp-dialog-error" data-deal-error aria-live="polite"></p>
-  <div class="sp-dialog-actions"><button class="sp-classic-button" type="button" data-action="cancel-dialog">Cancel</button><button class="sp-classic-button sp-default-button" type="submit">Deal</button></div>
+  <div class="sp-dialog-actions"><button class="sp-classic-button" type="button" data-action="cancel-dialog">取消</button><button class="sp-classic-button sp-default-button" type="submit">发牌</button></div>
 </form></dialog>
 <dialog class="sp-dialog" data-dialog="options" aria-labelledby="sp-options-title"><form method="dialog" class="sp-dialog-form" data-form="options">
-  <h2 id="sp-options-title">Options</h2>
-  <fieldset><legend>Difficulty</legend>
-    <label><input type="radio" name="suits" value="1"> <span><strong>One suit</strong> · Beginner. Every card is a spade.</span></label>
-    <label><input type="radio" name="suits" value="2"> <span><strong>Two suits</strong> · Intermediate. Spades and hearts.</span></label>
-    <label><input type="radio" name="suits" value="4"> <span><strong>Four suits</strong> · Advanced. The full two decks.</span></label>
+  <h2 id="sp-options-title">选项</h2>
+  <fieldset><legend>难度</legend>
+    <label><input type="radio" name="suits" value="1"> <span><strong>单花色</strong> · 初级，所有牌都是黑桃。</span></label>
+    <label><input type="radio" name="suits" value="2"> <span><strong>双花色</strong> · 中级，使用黑桃和红心。</span></label>
+    <label><input type="radio" name="suits" value="4"> <span><strong>四花色</strong> · 高级，使用两副牌的全部花色。</span></label>
   </fieldset>
-  <p class="sp-dialog-note" data-options-note>Changing the suits deals this number again with the new cards.</p>
-  <div class="sp-dialog-actions"><button class="sp-classic-button" type="button" data-action="cancel-dialog">Cancel</button><button class="sp-classic-button sp-default-button" type="submit">OK</button></div>
+  <p class="sp-dialog-note" data-options-note>更改花色数后，会用当前编号重新发牌。</p>
+  <div class="sp-dialog-actions"><button class="sp-classic-button" type="button" data-action="cancel-dialog">取消</button><button class="sp-classic-button sp-default-button" type="submit">确定</button></div>
 </form></dialog>
 <dialog class="sp-dialog" data-dialog="help" aria-labelledby="sp-help-title"><div class="sp-dialog-form">
-  <h2 id="sp-help-title">How to play Spider Solitaire</h2>
-  <p>Build each suit down from king to ace, inside the ten columns. When a column holds a full king-to-ace run of one suit, the run leaves the table. Clear all eight runs to win.</p>
-  <p>Any card can go on a card one rank higher, whatever its suit. Only a run of one suit moves together, so building in suit keeps your options open. Any card or run can fill an empty column.</p>
-  <p>When you run out of moves, click the stock in the bottom right to deal a new row: one card on every column. A row can only be dealt when no column is empty.</p>
-  <p><strong>Keyboard:</strong> Tab or the arrow keys move between piles. Enter or Space picks cards up and puts them down. Shift+Enter makes the best move for a card. Escape puts it back. <strong>D</strong> deals a row, <strong>M</strong> shows a move (press again for the next one), <strong>F2</strong> starts a new game and <strong>Ctrl+Z</strong> undoes.</p>
-  <div class="sp-dialog-actions"><button type="button" class="sp-classic-button sp-default-button" data-action="cancel-dialog">Got it</button></div>
+  <h2 id="sp-help-title">蜘蛛纸牌玩法</h2>
+  <p>在十列牌中，将同一花色从 K 到 A 依次排好。排好后整组会自动收走，收齐八组就获胜。</p>
+  <p>一张牌可以接在比它大一点的牌下面，花色不限。只有同花色的连续牌能整组移动。空列可以放任意一张牌或一组可移动的牌。</p>
+  <p>没有合适的移动时，点击右下角牌库，为每列再发一张。发牌前十列都必须有牌。</p>
+  <p><strong>键盘操作</strong> 按 Tab 或方向键在牌堆之间移动。回车或空格选牌、放牌。Shift+回车自动移动当前牌，Esc 取消选择。 <strong>D</strong> 发一排牌， <strong>M</strong> 查看提示（再按可换一条）， <strong>F2</strong> 开始新游戏， <strong>Ctrl+Z</strong> 撤销。</p>
+  <div class="sp-dialog-actions"><button type="button" class="sp-classic-button sp-default-button" data-action="cancel-dialog">知道了</button></div>
 </div></dialog>
 <dialog class="sp-dialog" data-dialog="about" aria-labelledby="sp-about-title"><div class="sp-dialog-form">
-  <h2 id="sp-about-title">A familiar game, made fresh</h2>
-  <p>This is our own Spider Solitaire, written in C and compiled to WebAssembly, with the classic scoring: 500 to start, one point off for every move, 100 back for every finished run. Deal numbers are our own.</p>
-  <p>The cards, the table and the bouncing ending are all drawn for this project.</p>
-  <div class="sp-dialog-actions"><button type="button" class="sp-classic-button sp-default-button" data-action="cancel-dialog">Close</button></div>
+  <h2 id="sp-about-title">关于蜘蛛纸牌</h2>
+  <p>本版沿用经典计分规则。开局 500 分，每走一步扣 1 分，每收齐一组加 100 分。牌局编号由 Stillplay 自行生成。</p>
+  <p>本项目自行绘制牌面、牌桌和通关动画。</p>
+  <div class="sp-dialog-actions"><button type="button" class="sp-classic-button sp-default-button" data-action="cancel-dialog">关闭</button></div>
 </div></dialog>`;
 }
 
 const SHORTCUTS = [
-  ['Click or drag', 'Move a card or a run'], ['Double-click', 'Make the best move for a card'],
-  ['D · click the stock', 'Deal a new row'], ['H or M', 'Show a move (again for the next)'],
-  ['Ctrl / ⌘ + Z', 'Undo'], ['Arrow keys · Enter', 'Pick up and put down'], ['F2', 'New game'], ['F1', 'How to play'],
+  ["点击或拖动", "移动一张牌或一组连续牌"], ["双击", "自动选择合适的位置"],
+  ["D 或点击牌库", "发一排牌"], ['H or M', "显示提示（再按可换一条）"],
+  ['Ctrl / ⌘ + Z', "撤销"], ["方向键 · 回车", "选牌、放牌"], ['F2', "新游戏"], ['F1', "玩法说明"],
 ];
 
 export async function mountSpider(container, { daily = false, chrome = false, onWin = () => {}, onStart = () => {}, onLose = () => {}, sound = () => {} } = {}) {
@@ -251,7 +251,7 @@ export async function mountSpider(container, { daily = false, chrome = false, on
         faceDownOffset: (height, pile) => columnGaps(pile).down,
         faceUpOffset: (height, pile) => columnGaps(pile).up,
       })),
-      { id: 's', element: pileElement('s'), row: 1, label: 'the stock', layout: stockLayout },
+      { id: 's', element: pileElement('s'), row: 1, label: "牌库", layout: stockLayout },
       ...RUN_PILES.map((id) => ({ id, element: pileElement(id), row: 1, label: pileLabel(id), passive: true })),
     ],
     canPick(pile, index) {
@@ -263,10 +263,10 @@ export async function mountSpider(container, { daily = false, chrome = false, on
     drop: (from, to) => performMove(Number(from.pile.slice(1)), Number(to.slice(1)), from.count),
     activate(pile, index) {
       if (pile === 's') { dealRow(); return; }
-      if (pile[0] === 'r') { announce(`${plural(runs.length, 'run')} of 8 complete.`); return; }
-      if (index < 0) announce('An empty column. Any card or run can go here.');
-      else if (!engine.state().columns[Number(pile.slice(1))][index]?.faceUp) announce('That card is face down for now. Clear the cards above it to turn it over.');
-      else announce('Only a run of one suit moves together. Move the cards on top of this one first.');
+      if (pile[0] === 'r') { announce(`已收齐 ${plural(runs.length, 'run')}，共 8 组。`); return; }
+      if (index < 0) announce("空列可以放任意一张牌或一组可移动的牌。");
+      else if (!engine.state().columns[Number(pile.slice(1))][index]?.faceUp) announce("这张牌还盖着。移开它上面的牌就能翻开。");
+      else announce("只有同花色连续牌能整组移动。请先移开它上面的牌。");
     },
     autoMove(pile, index) {
       if (pile[0] !== 't') return false;
@@ -280,25 +280,25 @@ export async function mountSpider(container, { daily = false, chrome = false, on
     cardLabel(card, faceUp, pile, index) {
       if (pile === 's') {
         const left = engine.state().dealsLeft;
-        return `Stock, ${plural(left, 'deal')} left. Deal a new row.`;
+        return `牌库，还可发 ${plural(left, 'deal')}。点击发一排牌。`;
       }
-      if (pile[0] === 'r') return `Completed run of ${SUITS[suitOf(card)]}`;
-      if (!faceUp) return `Face-down card, ${pileLabel(pile)}`;
-      return `${capital(cardName(card))}, ${pileLabel(pile)}, card ${index + 1}`;
+      if (pile[0] === 'r') return `已收齐的${SUITS[suitOf(card)]}牌组`;
+      if (!faceUp) return `盖住的牌，${pileLabel(pile)}`;
+      return `${capital(cardName(card))}，${pileLabel(pile)}，第 ${index + 1} 张`;
     },
     announce,
     sound: playSound,
     messages: {
       pick: (from) => {
         const card = faceAt(from.pile, from.index);
-        return `${capital(cardName(card))}${from.count > 1 ? ` and ${plural(from.count - 1, 'card')} on it` : ''}. Choose where it goes.`;
+        return `已选中${capital(cardName(card))}${from.count > 1 ? ` 及其上的${plural(from.count - 1, 'card')}` : ''}，请选择目标位置。`;
       },
-      cancel: () => 'Put back.',
+      cancel: () => "已取消选择。",
       illegal: (from, to) => {
-        if (!to) return 'Back where it was.';
+        if (!to) return "已放回原位。";
         const card = faceAt(from.pile, from.index);
-        if (rankOf(card) === 12) return 'A king can only go to an empty column.';
-        return `${capital(cardName(card))} needs ${rankOf(card) === 11 ? 'a king' : `a ${NAMES[rankOf(card) + 1]}`} or an empty column.`;
+        if (rankOf(card) === 12) return "K 只能移入空列。";
+        return `${capital(cardName(card))} 只能接在${rankOf(card) === 11 ? "K" : `${RANKS[rankOf(card) + 1]}`}下，或移入空列。`;
       },
     },
   });
@@ -428,14 +428,14 @@ export async function mountSpider(container, { daily = false, chrome = false, on
   /* ── chrome ────────────────────────────────────────────────────────────── */
   function renderChrome(state = engine.state()) {
     if (destroyed) return;
-    $('.sp-title').textContent = `Spider Solitaire — Deal #${state.seed}`;
-    $('.sp-menu-mode').textContent = `${daily ? 'Daily · ' : ''}${SUIT_WORDS[state.suits]}`;
+    $('.sp-title').textContent = `蜘蛛纸牌 · 第 ${state.seed} 局`;
+    $('.sp-menu-mode').textContent = `${daily ? "每日挑战 · " : ''}${SUIT_WORDS[state.suits]}`;
     for (const button of host.querySelectorAll('[data-action="undo"]')) button.disabled = !state.canUndo;
     for (const button of host.querySelectorAll('[data-action="deal-row"]')) button.disabled = state.stock === 0 || state.status === 'won';
-    $('.sp-status-progress').textContent = `${state.completed.length} of 8 runs · ${state.dealsLeft ? plural(state.dealsLeft, 'deal') + ' left' : 'no deals left'}`;
-    $('.sp-status-score').textContent = `Score: ${state.score.toLocaleString('en')}`;
-    $('.sp-status-moves').textContent = `Moves: ${state.moves.toLocaleString('en')}`;
-    $('.sp-done-area').setAttribute('aria-label', state.completed.length ? `${plural(state.completed.length, 'run')} of 8 complete` : 'No runs completed yet');
+    $('.sp-status-progress').textContent = `已完成 ${state.completed.length}/8 组 · ${state.dealsLeft ? '剩余 ' + plural(state.dealsLeft, 'deal') : "剩余 0 排"}`;
+    $('.sp-status-score').textContent = `得分：${state.score.toLocaleString('en')}`;
+    $('.sp-status-moves').textContent = `步数：${state.moves.toLocaleString('en')}`;
+    $('.sp-done-area').setAttribute('aria-label', state.completed.length ? `已完成 ${plural(state.completed.length, 'run')}/8 组` : "尚未收齐任何一组");
     $('.sp-done-area').classList.toggle('sp-done-some', state.completed.length > 0);
     const stock = pileElement('s');
     stock.classList.toggle('sp-stock-done', state.stock === 0);
@@ -467,22 +467,22 @@ export async function mountSpider(container, { daily = false, chrome = false, on
     if (!state.canDeal) {
       playSound('invalid');
       if (state.stock === 0) {
-        announce('No deals left. Every card is already on the table.');
+        announce("牌库已空，全部牌都已发到桌面。");
         return;
       }
       const empty = state.columns.flatMap((column, i) => column.length ? [] : [i]);
       table.shake('s', state.stock - 1);
       markEmpty(empty);
       announce(empty.length === 1
-        ? `Column ${empty[0] + 1} is empty. Put any card there first, then deal: every column needs a card before a new row.`
-        : `Columns ${empty.slice(0, -1).map((i) => i + 1).join(', ')} and ${empty.at(-1) + 1} are empty. Every column needs a card before a new row can be dealt.`);
+        ? `第 ${empty[0] + 1} 列为空。先移一张牌进去，十列都有牌才能发下一排。`
+        : `第 ${empty.slice(0, -1).map((i) => i + 1).join(', ')}、${empty.at(-1) + 1} 列为空。十列都有牌才能发下一排。`);
       return;
     }
     const before = snapshotBefore();
     engine.deal();
     startClock();
     const left = engine.state().dealsLeft;
-    announce(left ? `A new row. ${plural(left, 'deal')} left.` : 'The last row is out. Every card is on the table now.');
+    announce(left ? `已发一排，还可发 ${plural(left, 'deal')}。` : "最后一排已发出，所有牌都在桌面上。");
     after('deal', before);
   }
   function markEmpty(columns) {
@@ -525,17 +525,17 @@ export async function mountSpider(container, { daily = false, chrome = false, on
   function announceRuns(fresh, state) {
     const suit = SUITS[fresh[0].suit];
     announce(state.status === 'won'
-      ? 'The eighth run is home.'
-      : `A run of ${suit} is complete. ${plural(state.completed.length, 'run')} of 8 done, 100 points back.`);
+      ? "已收齐第八组。"
+      : `已收齐一组${suit}，加 100 分；当前已完成 ${plural(state.completed.length, 'run')}，共 8 组。`);
   }
   function settle(state = engine.state()) {
     if (state.status === 'won') { celebrate(); return; }
     if (!state.hasMoves) showStuck(state);
   }
   function showStuck(state) {
-    stuckEl.innerHTML = `<strong>No useful moves left.</strong><p>${state.canDeal ? 'Deal a new row, undo a few steps, or start again.' : 'Undo a few steps to try another way, or start a new game.'}</p><div class="sp-panel-actions">${state.canDeal ? '<button type="button" class="sp-classic-button sp-default-button" data-action="deal-row">Deal a row</button>' : ''}<button type="button" class="sp-classic-button${state.canDeal ? '' : ' sp-default-button'}" data-action="undo"${state.canUndo ? '' : ' disabled'}>Undo</button><button type="button" class="sp-classic-button" data-action="new">New game</button><button type="button" class="sp-text-button" data-action="dismiss">Keep looking</button></div>`;
+    stuckEl.innerHTML = `<strong>暂时没有有利的移动。</strong><p>${state.canDeal ? "可以发一排牌、撤销几步，或开始新局。" : "可以撤销几步换个走法，或开始新局。"}</p><div class="sp-panel-actions">${state.canDeal ? "<button type=\"button\" class=\"sp-classic-button sp-default-button\" data-action=\"deal-row\">发一排牌</button>" : ''}<button type="button" class="sp-classic-button${state.canDeal ? '' : ' sp-default-button'}" data-action="undo"${state.canUndo ? '' : ' disabled'}>撤销</button><button type="button" class="sp-classic-button" data-action="new">新游戏</button><button type="button" class="sp-text-button" data-action="dismiss">继续查看</button></div>`;
     stuckEl.hidden = false;
-    announce('No useful moves left. Undo, or start a new game.');
+    announce("暂时没有有利的移动。可以撤销或重新开局。");
   }
 
   async function celebrate() {
@@ -546,7 +546,7 @@ export async function mountSpider(container, { daily = false, chrome = false, on
     const seconds = finishedSeconds;
     renderChrome(state);
     playSound('win');
-    announce('All eight runs are home.');
+    announce("八组全部收齐！");
     const mine = ticket;
     await table.cascade({ piles: RUN_PILES, limit: CASCADE_CARDS });
     if (destroyed || mine !== ticket || engine.state().status !== 'won') return;
@@ -555,11 +555,11 @@ export async function mountSpider(container, { daily = false, chrome = false, on
       variant: SUIT_WORDS[state.suits].toLowerCase(), params: { deal: state.seed, suits: state.suits },
     };
     // In the site shell the win dialog is the one result screen.
-    if (chrome) { announce(`You won deal #${state.seed} in ${plural(state.moves, 'move')}.`); onWin(summary); return; }
-    winEl.innerHTML = `<span class="sp-win-kicker">${daily ? 'Today’s deal, done.' : 'All eight runs are home.'}</span><strong>You won deal #${state.seed}.</strong><p>${SUIT_WORDS[state.suits]} · ${plural(state.moves, 'move')}${seconds ? ` · ${clock(seconds)}` : ''}<br>Final score ${state.score.toLocaleString('en')}</p><div class="sp-panel-actions sp-win-actions"><button type="button" class="sp-classic-button sp-default-button" data-action="new">Deal again</button><button type="button" class="sp-text-button" data-action="same">Replay this deal</button></div>`;
+    if (chrome) { announce(`你用了 ${plural(state.moves, 'move')} 赢得第 ${state.seed} 局。`); onWin(summary); return; }
+    winEl.innerHTML = `<span class="sp-win-kicker">${daily ? "已完成今日挑战。" : "八组全部收齐！"}</span><strong>你赢得了第 ${state.seed} 局。</strong><p>${SUIT_WORDS[state.suits]} · ${plural(state.moves, 'move')}${seconds ? ` · ${clock(seconds)}` : ''}<br>最终得分 ${state.score.toLocaleString('en')}</p><div class="sp-panel-actions sp-win-actions"><button type="button" class="sp-classic-button sp-default-button" data-action="new">再玩一局</button><button type="button" class="sp-text-button" data-action="same">重玩本局</button></div>`;
     winEl.hidden = false;
     winEl.querySelector('[data-action="new"]').focus({ preventScroll: true });
-    announce(`You won deal #${state.seed} in ${plural(state.moves, 'move')}.`);
+    announce(`你用了 ${plural(state.moves, 'move')} 赢得第 ${state.seed} 局。`);
     onWin(summary);
   }
 
@@ -583,7 +583,7 @@ export async function mountSpider(container, { daily = false, chrome = false, on
     resetClock();
     wonReported = false;
     hidePanels();
-    announce(daily ? 'Today’s deal, the same for everyone. The daily is always one suit.' : `A fresh deal, ${SUIT_WORDS[state.suits].toLowerCase()}. Good luck.`);
+    announce(daily ? "所有玩家今天使用同一局；每日蜘蛛纸牌固定为单花色。" : `已发新局，${SUIT_WORDS[state.suits].toLowerCase()}。`);
     renderChrome(state);
     if (!quiet) playSound('new-game');
     const dealt = dealOut(piles(state), { from: 's', order: dealOrder(state), stagger: 18 });
@@ -591,7 +591,7 @@ export async function mountSpider(container, { daily = false, chrome = false, on
     await dealt;
   }
   function undo() {
-    if (!engine.undo()) { announce('You are at the start of this deal.'); return false; }
+    if (!engine.undo()) { announce("已回到本局开头。"); return false; }
     ticket += 1;
     table.clearCascade();
     playSound('undo');
@@ -600,7 +600,7 @@ export async function mountSpider(container, { daily = false, chrome = false, on
     const state = engine.state();
     updateRuns(state);
     renderChrome(state);
-    announce('One step back. Undo costs a point, like any move.');
+    announce("已撤销一步。按蜘蛛纸牌的规则，撤销也扣 1 分。");
     draw(piles(state));
     return true;
   }
@@ -611,7 +611,7 @@ export async function mountSpider(container, { daily = false, chrome = false, on
     if (!suggestion) { showStuck(state); return; }
     if (suggestion.type === 'deal') {
       table.showHint({ pile: 's', index: state.stock - 1, count: 1 }, null);
-      announce('Nothing useful on the table. Deal a new row from the stock.');
+      announce("桌面上暂无有利走法，可以从牌库发一排。");
       return;
     }
     const { from, to, count } = suggestion;
@@ -619,8 +619,8 @@ export async function mountSpider(container, { daily = false, chrome = false, on
     table.showHint({ pile: `t${from}`, index, count }, `t${to}`);
     const lead = capital(cardName(faces.get(state.columns[from][index].uid)));
     const target = state.columns[to].at(-1);
-    const where = target ? `the ${cardName(faces.get(target.uid))} in column ${to + 1}` : `empty column ${to + 1}`;
-    announce(`Try ${lead}${count > 1 ? ` and ${plural(count - 1, 'card')} on it` : ''} onto ${where}. Press M again for another idea.`);
+    const where = target ? `第 ${to + 1} 列的${cardName(faces.get(target.uid))}` : `空的第 ${to + 1} 列`;
+    announce(`可将${lead}${count > 1 ? ` 及其上的${plural(count - 1, 'card')}` : ''}移到${where}。再按 M 可查看其他走法。`);
   }
 
   /* ── menus, dialogs and keys ───────────────────────────────────────────── */
@@ -652,8 +652,8 @@ export async function mountSpider(container, { daily = false, chrome = false, on
       const form = dialog.querySelector('form');
       form.elements.suits.value = String(settings.suits);
       dialog.querySelector('[data-options-note]').textContent = daily
-        ? 'Today’s daily is always one suit, so everyone plays the same cards. Your choice here applies to regular games.'
-        : 'Changing the suits deals this number again with the new cards.';
+        ? "每日挑战固定为单花色。这里的选择仅用于普通局。"
+        : "更改花色数后，会用当前编号重新发牌。";
     }
     dialog.showModal();
     if (name === 'deal') { const input = dialog.querySelector('input'); input.focus(); input.select(); }
@@ -668,7 +668,7 @@ export async function mountSpider(container, { daily = false, chrome = false, on
     else if (name === 'undo') undo();
     else if (name === 'hint') hint();
     else if (name === 'deal-row') dealRow();
-    else if (name === 'dismiss') { stuckEl.hidden = true; announce('Take another look. Press M for a suggestion.'); }
+    else if (name === 'dismiss') { stuckEl.hidden = true; announce("再看看牌面，按 M 可以获取提示。"); }
   }
   function click(event) {
     const button = event.target.closest('[data-action]');
@@ -680,7 +680,7 @@ export async function mountSpider(container, { daily = false, chrome = false, on
     event.preventDefault();
     if (form.dataset.form === 'deal') {
       const value = Number(form.elements.deal.value);
-      if (!validDeal(value)) { form.querySelector('[data-deal-error]').textContent = 'Choose a whole number from 1 to 2,147,483,647.'; return; }
+      if (!validDeal(value)) { form.querySelector('[data-deal-error]').textContent = "请输入 1 到 2,147,483,647 之间的整数。"; return; }
       form.closest('dialog').close();
       newGame(value);
     } else if (form.dataset.form === 'options') {
@@ -690,7 +690,7 @@ export async function mountSpider(container, { daily = false, chrome = false, on
       const changed = suits !== settings.suits;
       settings.suits = suits;
       writeJSON(SETTINGS_KEY, settings);
-      if (daily) { announce(`Saved. Regular games will use ${SUIT_WORDS[suits].toLowerCase()}; today’s daily stays at one.`); return; }
+      if (daily) { announce(`选项已保存。普通局将使用${SUIT_WORDS[suits]}，今日挑战仍为单花色。`); return; }
       if (changed) newGame(engine.state().seed);
     }
   }
@@ -719,7 +719,7 @@ export async function mountSpider(container, { daily = false, chrome = false, on
   faces = readFaces(engine);
   renderChrome();
   const initial = engine.state();
-  announce(daily ? 'Today’s deal, the same for everyone. The daily is always one suit.' : 'Build each suit from king down to ace. Drag a card, or tap it and then its new place.');
+  announce(daily ? "所有玩家今天使用同一局；每日蜘蛛纸牌固定为单花色。" : "将同花色从 K 接到 A。可以拖牌，也可以先点击牌，再点击目标位置。");
   const opening = dealOut(piles(initial), { from: 's', order: dealOrder(initial), stagger: 18 }).catch(() => {});
   try { onStart(); } catch { /* optional */ }
   await opening;
@@ -750,7 +750,7 @@ export async function mountSpider(container, { daily = false, chrome = false, on
       const state = engine.state();
       updateRuns(state);
       renderChrome(state);
-      announce(chrome ? '' : 'Replay loaded. Pick up where this deal left off.');
+      announce(chrome ? '' : "回放已载入，可以接着玩。");
       await draw(piles(state), { animate: false });
       settle(state);
     },

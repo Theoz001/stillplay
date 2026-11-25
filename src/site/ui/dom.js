@@ -45,7 +45,7 @@ export const prefersReducedMotion = () => matchMedia('(prefers-reduced-motion: r
 export const todayUTC = () => new Date().toISOString().slice(0, 10);
 
 export function formatDate(isoDate, options = { day: 'numeric', month: 'long' }) {
-  return new Date(`${isoDate}T12:00:00Z`).toLocaleDateString('en-GB', { timeZone: 'UTC', ...options });
+  return new Date(`${isoDate}T12:00:00Z`).toLocaleDateString('zh-CN', { timeZone: 'UTC', ...options });
 }
 
 /** 75 -> "1:15"; 9 -> "0:09". */

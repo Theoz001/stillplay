@@ -10,7 +10,7 @@ const FOUNDATIONS = ['h0', 'h1', 'h2', 'h3'];
 const COLUMNS = ['t0', 't1', 't2', 't3', 't4', 't5', 't6'];
 
 const capital = (text) => text.charAt(0).toUpperCase() + text.slice(1);
-const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
+const plural = (count, word) => `${count} ${({card:'张牌',move:'步',run:'组',deal:'排',heart:'张红心',point:'分',hand:'手',选中的牌:'张选中的牌'})[word] || word}`;
 const clock = (seconds) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 const money = (value) => `${value < 0 ? '−' : ''}$${Math.abs(value)}`;
 const validDeal = (value) => Number.isInteger(value) && value >= 1 && value <= 2147483647;
@@ -36,7 +36,7 @@ function randomDeal() {
 }
 
 /** The keyboard and mouse sheet the site shows for this game (the shell reads it from the handle). */
-const SHORTCUTS = [['Click or drag', 'Move a card'], ['Double-click · Shift + Enter', 'Send a card home'], ['D', 'Turn the stock'], ['Ctrl / ⌘ + Z', 'Undo'], ['H', 'Hint'], ['F', 'Finish when every card is face up'], ['Arrow keys · Enter', 'Pick up and put down'], ['F2', 'New deal'], ['F1', 'How to play']];
+const SHORTCUTS = [["点击或拖动", "移动一张牌"], ["双击或 Shift+回车", "将牌移入回收区"], ['D', "从牌库翻牌"], ['Ctrl / ⌘ + Z', "撤销"], ['H', "提示"], ['F', "所有牌翻开后自动收牌"], ["方向键 · 回车", "选牌、放牌"], ['F2', "重新发牌"], ['F1', "玩法说明"]];
 
 function injectStyles() {
   if (document.querySelector('link[data-solitaire-styles]')) return;
@@ -47,7 +47,7 @@ function injectStyles() {
   document.head.append(link);
 }
 
-const pileLabel = (id) => id === 's' ? 'the stock' : id === 'w' ? 'the waste' : id[0] === 'h' ? `foundation ${Number(id[1]) + 1}` : `column ${Number(id[1]) + 1}`;
+const pileLabel = (id) => id === 's' ? "牌库" : id === 'w' ? "翻牌区" : id[0] === 'h' ? `第 ${Number(id[1]) + 1} 个回收区` : `第 ${Number(id[1]) + 1} 列`;
 
 const ICONS = {
   window: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="2.5" width="12" height="17" rx="1.2" fill="#2c6249" stroke="#fff" stroke-width=".8"/><rect x="9" y="4.5" width="12" height="17" rx="1.2" fill="#fff" stroke="#142b64"/><path d="M15 9.2c-1.2-1.6-3.6-.4-2.6 1.6.6 1.1 2.6 2.6 2.6 2.6s2-1.5 2.6-2.6c1-2-1.4-3.2-2.6-1.6Z" fill="#b4232b"/></svg>',
@@ -57,87 +57,87 @@ const ICONS = {
 
 function markup(daily, chrome) {
   const slot = (label, extra = '') => `<button type="button" class="sol-slot" data-ct-target aria-label="${label}">${extra}</button>`;
-  return `<section class="sol-window" aria-label="Solitaire game">
-  <div class="sol-titlebar"><span class="sol-title-icon">${ICONS.window}</span><span class="sol-title">Solitaire</span><span class="sol-title-controls" aria-hidden="true"><i></i><i></i><i>×</i></span></div>
+  return `<section class="sol-window" aria-label="经典接龙牌桌">
+  <div class="sol-titlebar"><span class="sol-title-icon">${ICONS.window}</span><span class="sol-title">经典接龙</span><span class="sol-title-controls" aria-hidden="true"><i></i><i></i><i>×</i></span></div>
   <div class="sol-menubar">
-    <div class="sol-menu-wrap"><button type="button" class="sol-menu-trigger" data-action="menu-game" aria-expanded="false" aria-haspopup="menu"><u>G</u>ame</button>
+    <div class="sol-menu-wrap"><button type="button" class="sol-menu-trigger" data-action="menu-game" aria-expanded="false" aria-haspopup="menu">游戏</button>
       <div class="sol-dropdown" role="menu" data-menu="game" hidden>
-        <button role="menuitem" type="button" data-action="new">Deal <span>F2</span></button>
-        <button role="menuitem" type="button" data-action="deal">Choose a deal…</button>
+        <button role="menuitem" type="button" data-action="new">发牌 <span>F2</span></button>
+        <button role="menuitem" type="button" data-action="deal">选择牌局…</button>
         <div class="sol-menu-separator" role="separator"></div>
-        <button role="menuitem" type="button" data-action="undo">Undo <span>Ctrl+Z</span></button>
-        <button role="menuitem" type="button" data-action="hint">Hint <span>H</span></button>
-        <button role="menuitem" type="button" data-action="finish">Finish for me <span>F</span></button>
+        <button role="menuitem" type="button" data-action="undo">撤销 <span>Ctrl+Z</span></button>
+        <button role="menuitem" type="button" data-action="hint">提示 <span>H</span></button>
+        <button role="menuitem" type="button" data-action="finish">自动收牌 <span>F</span></button>
         <div class="sol-menu-separator" role="separator"></div>
-        <button role="menuitem" type="button" data-action="options">Options…</button>
+        <button role="menuitem" type="button" data-action="options">选项…</button>
       </div></div>
-    <div class="sol-menu-wrap"><button type="button" class="sol-menu-trigger" data-action="menu-help" aria-expanded="false" aria-haspopup="menu"><u>H</u>elp</button>
+    <div class="sol-menu-wrap"><button type="button" class="sol-menu-trigger" data-action="menu-help" aria-expanded="false" aria-haspopup="menu">帮助</button>
       <div class="sol-dropdown" role="menu" data-menu="help" hidden>
-        <button role="menuitem" type="button" data-action="help">How to play <span>F1</span></button>
-        <button role="menuitem" type="button" data-action="about">About this version</button>
+        <button role="menuitem" type="button" data-action="help">玩法说明 <span>F1</span></button>
+        <button role="menuitem" type="button" data-action="about">关于此版本</button>
       </div></div>
-    <span class="sol-menu-mode">${daily ? 'Daily deal' : ''}</span>
+    <span class="sol-menu-mode">${daily ? "每日牌局" : ''}</span>
   </div>
   <div class="sol-felt">
     <div class="sol-row sol-top">
-      <div class="sol-pile sol-stock" data-pile-id="s">${slot('Stock is empty', `<span class="sol-stock-icon">${ICONS.recycle}</span>`)}</div>
-      <div class="sol-pile sol-waste" data-pile-id="w">${slot('Waste, empty')}</div>
+      <div class="sol-pile sol-stock" data-pile-id="s">${slot("牌库已空", `<span class="sol-stock-icon">${ICONS.recycle}</span>`)}</div>
+      <div class="sol-pile sol-waste" data-pile-id="w">${slot("翻牌区为空")}</div>
       <div class="sol-spacer" aria-hidden="true"></div>
-      ${FOUNDATIONS.map((id, i) => `<div class="sol-pile sol-foundation" data-pile-id="${id}">${slot(`Foundation ${i + 1}, empty`, '<span class="sol-ace" aria-hidden="true">A</span>')}</div>`).join('')}
+      ${FOUNDATIONS.map((id, i) => `<div class="sol-pile sol-foundation" data-pile-id="${id}">${slot(`第 ${i + 1} 个回收区，空`, '<span class="sol-ace" aria-hidden="true">A</span>')}</div>`).join('')}
     </div>
     <div class="sol-row sol-tableau">
-      ${COLUMNS.map((id, i) => `<div class="sol-pile sol-column" data-pile-id="${id}">${slot(`Column ${i + 1}, empty. Kings only.`)}</div>`).join('')}
+      ${COLUMNS.map((id, i) => `<div class="sol-pile sol-column" data-pile-id="${id}">${slot(`第 ${i + 1} 列为空，只能放 K。`)}</div>`).join('')}
     </div>
     <div class="sol-win" role="status" hidden></div>
   </div>
-  <div class="sol-statusbar"><span class="sol-status-moves">0 moves</span><span class="sol-status-score">Score: 0</span><span class="sol-status-time">Time: 0:00</span></div>
+  <div class="sol-statusbar"><span class="sol-status-moves">0 步</span><span class="sol-status-score">得分：0</span><span class="sol-status-time">用时：0:00</span></div>
 </section>
 <div class="sol-below">
   <div class="sol-quick-actions">
-    ${chrome ? '' : `<button type="button" data-action="undo">Undo</button><span aria-hidden="true">·</span>
-    <button type="button" data-action="hint">Hint</button><span aria-hidden="true">·</span>`}
-    <button type="button" data-action="finish" class="sol-finish" hidden>Finish for me</button><span aria-hidden="true" class="sol-finish-dot" hidden>·</span>
-    <button type="button" data-action="options">Options</button><span aria-hidden="true">·</span>
-    <button type="button" data-action="deal">Choose a deal</button>
+    ${chrome ? '' : `<button type="button" data-action="undo">撤销</button><span aria-hidden="true">·</span>
+    <button type="button" data-action="hint">提示</button><span aria-hidden="true">·</span>`}
+    <button type="button" data-action="finish" class="sol-finish" hidden>自动收牌</button><span aria-hidden="true" class="sol-finish-dot" hidden>·</span>
+    <button type="button" data-action="options">选项</button><span aria-hidden="true">·</span>
+    <button type="button" data-action="deal">选择牌局</button>
   </div>
   <p class="sol-message" role="status" aria-live="polite"></p>
 </div>
 <dialog class="sol-dialog" data-dialog="deal" aria-labelledby="sol-deal-title"><form method="dialog" class="sol-dialog-form" data-form="deal">
-  <h2 id="sol-deal-title">Choose a deal</h2><p>Every number is its own shuffle. Share one with a friend and you both get the same cards.</p>
-  <label for="sol-deal-input">Deal number</label><input id="sol-deal-input" name="deal" type="number" min="1" max="2147483647" step="1" required>
+  <h2 id="sol-deal-title">选择牌局</h2><p>相同的编号会生成同一局牌，朋友也能使用这个编号重玩。</p>
+  <label for="sol-deal-input">牌局编号</label><input id="sol-deal-input" name="deal" type="number" min="1" max="2147483647" step="1" required>
   <p class="sol-dialog-error" data-deal-error aria-live="polite"></p>
-  <div class="sol-dialog-actions"><button class="sol-classic-button" type="button" data-action="cancel-dialog">Cancel</button><button class="sol-classic-button sol-default-button" type="submit">Deal</button></div>
+  <div class="sol-dialog-actions"><button class="sol-classic-button" type="button" data-action="cancel-dialog">取消</button><button class="sol-classic-button sol-default-button" type="submit">发牌</button></div>
 </form></dialog>
 <dialog class="sol-dialog" data-dialog="options" aria-labelledby="sol-options-title"><form method="dialog" class="sol-dialog-form" data-form="options">
-  <h2 id="sol-options-title">Options</h2>
+  <h2 id="sol-options-title">选项</h2>
   <div class="sol-option-groups">
-    <fieldset><legend>Draw</legend>
-      <label><input type="radio" name="draw" value="1"> Draw one</label>
-      <label><input type="radio" name="draw" value="3"> Draw three</label></fieldset>
-    <fieldset><legend>Scoring</legend>
-      <label><input type="radio" name="scoring" value="standard"> Standard</label>
-      <label><input type="radio" name="scoring" value="vegas"> Vegas</label>
-      <label><input type="radio" name="scoring" value="none"> None</label></fieldset>
+    <fieldset><legend>翻牌方式</legend>
+      <label><input type="radio" name="draw" value="1"> 翻一张</label>
+      <label><input type="radio" name="draw" value="3"> 翻三张</label></fieldset>
+    <fieldset><legend>计分方式</legend>
+      <label><input type="radio" name="scoring" value="standard"> 标准</label>
+      <label><input type="radio" name="scoring" value="vegas"> 拉斯维加斯</label>
+      <label><input type="radio" name="scoring" value="none"> 不计分</label></fieldset>
   </div>
-  <label class="sol-check"><input type="checkbox" name="timed"> Timed game</label>
-  <label class="sol-check"><input type="checkbox" name="cumulative"> Keep a running Vegas total</label>
-  <label class="sol-check"><input type="checkbox" name="autoFlip"> Turn cards over automatically</label>
-  <label class="sol-check"><input type="checkbox" name="autoPlay"> Send safe cards home automatically</label>
-  <p class="sol-dialog-note">Changing draw, scoring or turning deals these cards again.</p>
-  <div class="sol-dialog-actions"><button class="sol-classic-button" type="button" data-action="cancel-dialog">Cancel</button><button class="sol-classic-button sol-default-button" type="submit">OK</button></div>
+  <label class="sol-check"><input type="checkbox" name="timed"> 计时</label>
+  <label class="sol-check"><input type="checkbox" name="cumulative"> 累计拉斯维加斯模式的得分</label>
+  <label class="sol-check"><input type="checkbox" name="autoFlip"> 自动翻开露出的牌</label>
+  <label class="sol-check"><input type="checkbox" name="autoPlay"> 自动收起不影响后续走法的牌</label>
+  <p class="sol-dialog-note">更改翻牌或计分规则后，将使用当前编号重新发牌。</p>
+  <div class="sol-dialog-actions"><button class="sol-classic-button" type="button" data-action="cancel-dialog">取消</button><button class="sol-classic-button sol-default-button" type="submit">确定</button></div>
 </form></dialog>
 <dialog class="sol-dialog" data-dialog="help" aria-labelledby="sol-help-title"><div class="sol-dialog-form">
-  <h2 id="sol-help-title">How to play Solitaire</h2>
-  <p>Build four foundations, one per suit, from ace up to king. On the table, stack cards downward in alternating colours. Only a king can start an empty column.</p>
-  <p>Drag a card or a run of cards, or tap it and then tap where it should go. Double-click or double-tap a card to send it to a foundation. Click the stock to turn more cards.</p>
-  <p><strong>Keyboard:</strong> Tab or the arrow keys move between piles. Enter or Space picks cards up and puts them down. Shift+Enter sends a card home. Escape puts it back. <strong>D</strong> draws, <strong>H</strong> hints, <strong>F</strong> finishes when every card is face up, <strong>F2</strong> deals and <strong>Ctrl+Z</strong> undoes.</p>
-  <div class="sol-dialog-actions"><button type="button" class="sol-classic-button sol-default-button" data-action="cancel-dialog">Got it</button></div>
+  <h2 id="sol-help-title">经典接龙玩法</h2>
+  <p>四种花色各有一个回收区，从 A 收到 K。牌列中按点数递减、红黑交替叠放。空列只能放 K 或以 K 开头的一组牌。</p>
+  <p>可以拖动单张或整组牌，也可以先点牌，再点目标。双击可将牌移入回收区。点击牌库翻出新牌。</p>
+  <p><strong>键盘操作</strong> 按 Tab 或方向键切换牌堆，回车或空格选牌、放牌，Shift+回车移入回收区，Esc 取消。 <strong>D</strong> 翻牌， <strong>H</strong> 显示提示， <strong>F</strong> 在牌全部翻开后自动收牌， <strong>F2</strong> 发牌， <strong>Ctrl+Z</strong> 撤销。</p>
+  <div class="sol-dialog-actions"><button type="button" class="sol-classic-button sol-default-button" data-action="cancel-dialog">知道了</button></div>
 </div></dialog>
 <dialog class="sol-dialog" data-dialog="about" aria-labelledby="sol-about-title"><div class="sol-dialog-form">
-  <h2 id="sol-about-title">A familiar game, made fresh</h2>
-  <p>This is our own Klondike, written in C and compiled to WebAssembly, with the scoring people remember: standard, Vegas and timed.</p>
-  <p>The cards, the table and the bouncing ending are all drawn for this project.</p>
-  <div class="sol-dialog-actions"><button type="button" class="sol-classic-button sol-default-button" data-action="cancel-dialog">Close</button></div>
+  <h2 id="sol-about-title">关于经典接龙</h2>
+  <p>本版沿用经典接龙的标准计分、拉斯维加斯计分和计时玩法。</p>
+  <p>本项目自行绘制牌面、牌桌和通关动画。</p>
+  <div class="sol-dialog-actions"><button type="button" class="sol-classic-button sol-default-button" data-action="cancel-dialog">关闭</button></div>
 </div></dialog>`;
 }
 
@@ -160,7 +160,7 @@ export async function mountSolitaire(container, { daily = false, onWin = () => {
   let openMenu = null;
   let running = null; // timer for finish/auto-play sequences
   let bankStart = settings.cumulative && settings.scoring === 'vegas' ? readJSON(BANK_KEY, 0) : 0;
-  let message = daily ? 'Today’s deal, the same for everyone. Take your time.' : 'Build each suit from ace to king. Drag a card, or tap it and then its new place.';
+  let message = daily ? "所有人今天使用同一局。" : "将各花色从 A 到 K 依次收齐。可以拖牌，也可以先点击牌，再点击目标位置。";
 
   const host = document.createElement('div');
   host.className = 'solitaire-root';
@@ -180,8 +180,8 @@ export async function mountSolitaire(container, { daily = false, onWin = () => {
   const table = createCardTable(felt, {
     cardClass: 'sol-card',
     piles: [
-      { id: 's', element: pileElement('s'), row: 0, label: 'the stock', depth: true },
-      { id: 'w', element: pileElement('w'), row: 0, label: 'the waste', fan: 'right', fanOffset: 0.2 },
+      { id: 's', element: pileElement('s'), row: 0, label: "牌库", depth: true },
+      { id: 'w', element: pileElement('w'), row: 0, label: "翻牌区", fan: 'right', fanOffset: 0.2 },
       ...FOUNDATIONS.map((id) => ({ id, element: pileElement(id), row: 0, label: pileLabel(id) })),
       ...COLUMNS.map((id) => ({
         id, element: pileElement(id), row: 1, label: pileLabel(id), fan: 'down', compress: true,
@@ -204,8 +204,8 @@ export async function mountSolitaire(container, { daily = false, onWin = () => {
         const column = Number(pile[1]);
         if (engine.flip(column)) { startClock(); after(); return; }
       }
-      if (index < 0) announce(pile[0] === 't' ? 'An empty column waits for a king.' : pile[0] === 'h' ? 'Foundations start with an ace.' : 'The waste is empty. Click the stock to turn cards.');
-      else announce('That card is face down for now.');
+      if (index < 0) announce(pile[0] === 't' ? "空列只能放 K 或以 K 开头的一组牌。" : pile[0] === 'h' ? "回收区从 A 开始。" : "翻牌区为空。请点击牌库翻牌。");
+      else announce("这张牌尚未翻开。");
     },
     autoMove(pile, index) {
       const state = engine.state();
@@ -216,18 +216,18 @@ export async function mountSolitaire(container, { daily = false, onWin = () => {
     },
     cardLabel(card, faceUp, pile, index) {
       if (pile === 's') return stockLabel;
-      if (!faceUp) return `Face-down card, ${pileLabel(pile)}`;
-      return `${capital(cardName(card))}, ${pileLabel(pile)}${pile[0] === 't' ? `, card ${index + 1}` : ''}`;
+      if (!faceUp) return `盖住的牌，${pileLabel(pile)}`;
+      return `${capital(cardName(card))}, ${pileLabel(pile)}${pile[0] === 't' ? `，第 ${index + 1} 张` : ''}`;
     },
     announce,
     sound: playSound,
     messages: {
       pick: (from) => {
         const card = cardAt(from.pile, from.index);
-        return `${capital(cardName(card))}${from.count > 1 ? ` and ${plural(from.count - 1, 'card')} on it` : ''}. Choose where it goes.`;
+        return `已选中${capital(cardName(card))}${from.count > 1 ? ` 及其上的${plural(from.count - 1, 'card')}` : ''}，请选择目标位置。`;
       },
-      cancel: () => 'Put back.',
-      illegal: (from, to) => to ? `${capital(cardName(cardAt(from.pile, from.index)))} can’t go on ${pileLabel(to)}.` : 'Back where it was.',
+      cancel: () => "已取消选择。",
+      illegal: (from, to) => to ? `${capital(cardName(cardAt(from.pile, from.index)))}不能放到${pileLabel(to)}上。` : "已放回原位。",
     },
   });
 
@@ -242,7 +242,7 @@ export async function mountSolitaire(container, { daily = false, onWin = () => {
   let stockLabel = '';
   function pileState(state) {
     // Worked out once per sync rather than once per stock card.
-    stockLabel = `Stock, ${plural(state.stock.length, 'card')}. Draw ${state.draw === 3 ? 'three' : 'one'}.`;
+    stockLabel = `牌库还有${plural(state.stock.length, 'card')}，每次翻 ${state.draw} 张。`;
     const piles = {
       s: state.stock.map((card) => ({ card, faceUp: false })),
       w: { cards: state.waste, fan: Math.max(1, state.wasteFan) },
@@ -269,15 +269,15 @@ export async function mountSolitaire(container, { daily = false, onWin = () => {
     const value = score(state);
     const scoreEl = $('.sol-status-score');
     scoreEl.hidden = value === null;
-    if (value !== null) setText(scoreEl, `Score: ${state.scoring === 'vegas' ? money(value) : value.toLocaleString('en')}`);
+    if (value !== null) setText(scoreEl, `得分：${state.scoring === 'vegas' ? money(value) : value.toLocaleString('en')}`);
     const timeEl = $('.sol-status-time');
     timeEl.hidden = !settings.timed;
-    setText(timeEl, `Time: ${clock(elapsed())}`);
+    setText(timeEl, `用时：${clock(elapsed())}`);
   }
   function renderChrome(state = engine.state()) {
     if (destroyed) return;
-    setText($('.sol-title'), `Solitaire — Deal #${state.seed}`);
-    setText($('.sol-menu-mode'), `${daily ? 'Daily · ' : ''}Draw ${state.draw === 3 ? 'three' : 'one'} · ${capital(state.scoring)}`);
+    setText($('.sol-title'), `经典接龙 · 第 ${state.seed} 局`);
+    setText($('.sol-menu-mode'), `${daily ? "每日挑战 · " : ''}每次翻 ${state.draw} 张 · ${({standard:'标准计分',vegas:'拉斯维加斯计分',none:'不计分'})[state.scoring]}`);
     for (const button of host.querySelectorAll('[data-action="undo"]')) button.disabled = state.moves === 0;
     for (const button of host.querySelectorAll('[data-action="finish"]')) button.disabled = !state.canAutoFinish;
     $('.sol-quick-actions .sol-finish').hidden = !state.canAutoFinish;
@@ -291,7 +291,7 @@ export async function mountSolitaire(container, { daily = false, onWin = () => {
       stock.classList.toggle('sol-stock-done', exhausted);
       stock.querySelector('.sol-stock-icon').innerHTML = exhausted ? ICONS.done : ICONS.recycle;
     }
-    stock.querySelector('.sol-slot').setAttribute('aria-label', exhausted ? 'Stock is finished for this game' : state.waste.length ? 'Stock is empty. Turn the waste over.' : 'Stock is empty');
+    stock.querySelector('.sol-slot').setAttribute('aria-label', exhausted ? "本局不能再翻牌。" : state.waste.length ? "牌库已空，可将翻牌区翻回牌库。" : "牌库已空");
     if (state.scoring === 'vegas' && settings.cumulative) writeJSON(BANK_KEY, bankStart + state.score);
   }
   function update(animate = true) {
@@ -327,7 +327,7 @@ export async function mountSolitaire(container, { daily = false, onWin = () => {
     startClock();
     playSound(to[0] === 'h' ? 'foundation' : 'card-place');
     // Replace the "choose where it goes" prompt left by the first click of a double-click.
-    announce(to[0] === 'h' ? `${capital(cardName(card))} goes home.` : `${capital(cardName(card))}${count > 1 ? ` and ${plural(count - 1, 'card')} on it` : ''} to ${pileLabel(to)}.`);
+    announce(to[0] === 'h' ? `${capital(cardName(card))}已移入回收区。` : `${capital(cardName(card))}${count > 1 ? ` 及其上的${plural(count - 1, 'card')}` : ''}已移到${pileLabel(to)}。`);
     after();
     return true;
   }
@@ -337,14 +337,14 @@ export async function mountSolitaire(container, { daily = false, onWin = () => {
     if (!turned) {
       table.shake('s', -1);
       playSound('invalid');
-      announce('The stock is finished for this game.');
+      announce("本局的翻牌次数已用完。");
       return;
     }
     startClock();
     if (turned === 'recycle') {
       playSound('stock-recycle');
       const state = engine.state();
-      announce(state.maxPasses ? `Pass ${state.pass} of ${state.maxPasses}.` : 'The waste goes back to the stock.');
+      announce(state.maxPasses ? `第 ${state.pass} 轮，共 ${state.maxPasses} 轮。` : "已将翻牌区翻回牌库。");
     }
     after();
   }
@@ -352,7 +352,7 @@ export async function mountSolitaire(container, { daily = false, onWin = () => {
     const state = engine.state();
     const sync = update();
     if (state.status === 'won') { celebrate(sync); return; }
-    if (state.canAutoFinish) announce('Every card is face up. Press F or choose Finish for me.');
+    if (state.canAutoFinish) announce("所有牌均已翻开。按 F 或选择“自动收牌”即可收齐。");
     if (settings.autoPlay) running = setTimeout(autoPlayStep, 170);
   }
   function autoPlayStep() {
@@ -363,9 +363,9 @@ export async function mountSolitaire(container, { daily = false, onWin = () => {
   }
   function finish() {
     stopRunning();
-    if (!engine.state().canAutoFinish) { announce('Finish for me works once every card is face up.'); return; }
+    if (!engine.state().canAutoFinish) { announce("自动收牌需要先翻开所有的牌。"); return; }
     startClock();
-    announce('Sending every card home…');
+    announce("正在自动收牌…");
     const step = () => {
       running = null;
       if (destroyed) return;
@@ -390,20 +390,20 @@ export async function mountSolitaire(container, { daily = false, onWin = () => {
     const final = score(state);
     renderChrome(state);
     playSound('win');
-    announce('Every card is home.');
+    announce("所有牌均已收齐。");
     await syncPromise;
     if (destroyed || engine.state().status !== 'won') return;
     await table.cascade({ piles: FOUNDATIONS });
     if (destroyed || engine.state().status !== 'won') return;
     const summary = {
       game: 'solitaire', seed: state.seed, deal: state.seed, daily, elapsedSeconds: seconds, moves: state.moves, score: final, bonus,
-      draw: state.draw, scoring: state.scoring, variant: `draw ${state.draw === 3 ? 'three' : 'one'}`, params: { deal: state.seed, draw: state.draw },
+      draw: state.draw, scoring: state.scoring, variant: `每次翻 ${state.draw} 张`, params: { deal: state.seed, draw: state.draw },
     };
-    announce(`You won deal #${state.seed} in ${plural(state.moves, 'move')}.`);
+    announce(`你用了 ${plural(state.moves, 'move')} 赢得第 ${state.seed} 局。`);
     // In the site shell the win dialog is the one result screen.
     if (chrome) { onWin(summary); return; }
-    const scoreLine = final === null ? '' : state.scoring === 'vegas' ? ` · ${money(final)}` : ` · ${final.toLocaleString('en')} points`;
-    winEl.innerHTML = `<span class="sol-win-kicker">${daily ? 'Today’s deal, done.' : 'Every card is home.'}</span><strong>You won deal #${state.seed}.</strong><p>${plural(state.moves, 'move')} · ${clock(seconds)}${scoreLine}${bonus ? `<br>Includes a time bonus of ${bonus.toLocaleString('en')}.` : ''}</p><div class="sol-win-actions"><button type="button" class="sol-classic-button sol-default-button" data-action="new">Deal again</button><button type="button" class="sol-text-button" data-action="same">Replay this deal</button></div>`;
+    const scoreLine = final === null ? '' : state.scoring === 'vegas' ? ` · ${money(final)}` : ` · ${final.toLocaleString('en')} 分`;
+    winEl.innerHTML = `<span class="sol-win-kicker">${daily ? "已完成今日挑战。" : "所有牌均已收齐。"}</span><strong>你赢得了第 ${state.seed} 局。</strong><p>${plural(state.moves, 'move')} · ${clock(seconds)}${scoreLine}${bonus ? `<br>其中含时间奖励 ${bonus.toLocaleString('en')} 分。` : ''}</p><div class="sol-win-actions"><button type="button" class="sol-classic-button sol-default-button" data-action="new">再玩一局</button><button type="button" class="sol-text-button" data-action="same">重玩本局</button></div>`;
     winEl.hidden = false;
     winEl.querySelector('[data-action="new"]').focus({ preventScroll: true });
     onWin(summary);
@@ -420,7 +420,7 @@ export async function mountSolitaire(container, { daily = false, onWin = () => {
     resetClock();
     wonReported = false;
     winEl.hidden = true;
-    announce(daily ? 'Today’s deal, the same for everyone. Take your time.' : 'A fresh deal. Good luck.');
+    announce(daily ? "所有人今天使用同一局。" : "已发新局。");
     renderChrome(state);
     onStart();
     playSound('card-shuffle');
@@ -429,26 +429,26 @@ export async function mountSolitaire(container, { daily = false, onWin = () => {
   /** Take back one move. Returns whether there was a move to take back. */
   function undo() {
     stopRunning();
-    if (!engine.undo()) { announce('You are at the start of this deal.'); return false; }
+    if (!engine.undo()) { announce("已回到本局开头。"); return false; }
     playSound('undo');
     if (wonReported) { wonReported = false; finishedSeconds = null; winEl.hidden = true; if (started) ticker = setInterval(() => { if (!destroyed) renderClock(); }, 1000); }
-    announce('One step back.');
+    announce("已撤销一步。");
     update();
     return true;
   }
   function hint() {
     const suggestion = engine.hint();
     const state = engine.state();
-    if (!suggestion) { announce('No moves left to suggest. Undo, or try a new deal.'); return false; }
+    if (!suggestion) { announce("暂无可提示的走法，可以撤销或开始新局。"); return false; }
     if (suggestion.action === 'draw' || suggestion.action === 'recycle') {
       table.showHint({ pile: 's', index: Math.max(0, state.stock.length - 1), count: 1 }, null);
-      announce(suggestion.action === 'draw' ? 'Try turning the stock.' : 'Try turning the waste back over.');
+      announce(suggestion.action === 'draw' ? "可以点击牌库翻牌。" : "可以将翻牌区翻回牌库。");
       return true;
     }
     if (suggestion.action === 'flip') {
       const id = `t${suggestion.column}`;
       table.showHint({ pile: id, index: state.tableau[suggestion.column].length - 1, count: 1 }, null);
-      announce(`Turn over the top card of ${pileLabel(id)}.`);
+      announce(`翻开${pileLabel(id)}的顶牌。`);
       return true;
     }
     const from = suggestion.from.type === 'waste' ? 'w' : `${suggestion.from.type[0] === 't' ? 't' : 'h'}${suggestion.from.index}`;
@@ -456,7 +456,7 @@ export async function mountSolitaire(container, { daily = false, onWin = () => {
     const length = from === 'w' ? state.waste.length : from[0] === 't' ? state.tableau[suggestion.from.index].length : state.foundations[suggestion.from.index].rank;
     const index = length - suggestion.count;
     table.showHint({ pile: from, index, count: suggestion.count }, to);
-    announce(`Try ${cardName(cardAt(from, index))}${suggestion.count > 1 ? ' and the cards on it' : ''} on ${to[0] === 'h' ? 'a foundation' : pileLabel(to)}.`);
+    announce(`可将${cardName(cardAt(from, index))}${suggestion.count > 1 ? " 及其上的牌" : ''}移到${to[0] === 'h' ? "回收区" : pileLabel(to)}。`);
     return true;
   }
 
@@ -515,7 +515,7 @@ export async function mountSolitaire(container, { daily = false, onWin = () => {
     if (form.dataset.form === 'deal') {
       event.preventDefault();
       const value = Number(form.elements.deal.value);
-      if (!validDeal(value)) { form.querySelector('[data-deal-error]').textContent = 'Choose a whole number from 1 to 2,147,483,647.'; return; }
+      if (!validDeal(value)) { form.querySelector('[data-deal-error]').textContent = "请输入 1 到 2,147,483,647 之间的整数。"; return; }
       form.closest('dialog').close();
       newGame(value);
     } else if (form.dataset.form === 'options') {
@@ -588,7 +588,7 @@ export async function mountSolitaire(container, { daily = false, onWin = () => {
       wonReported = false;
       winEl.hidden = true;
       bankStart = 0;
-      announce(chrome ? '' : 'Replay loaded. Pick up where this deal left off.');
+      announce(chrome ? '' : "回放已载入，可以接着玩。");
       await update(false);
       if (state.status === 'won') celebrate(Promise.resolve());
     },

@@ -5,11 +5,11 @@ import { secretCard } from './home.js';
 
 export function render(main, { slug }) {
   if (!slug) {
-    main.innerHTML = `<section class="secrets-index wrap"><p class="eyebrow">Worth another look</p><h1>Small games.<br><em>Good secrets.</em></h1><p class="lede">The details that stayed with us, and the code you can poke at. Interactive notes, with our own game engines underneath.</p><div class="secrets-grid">${secrets.map(secretCard).join('')}</div></section>`;
+    main.innerHTML = `<section class="secrets-index wrap"><p class="eyebrow">游戏掌故</p><h1>小游戏<br><em>掌故</em></h1><p class="lede">这里用游戏本身的程序演示经典规则、牌局编号和一些容易忽略的细节。</p><div class="secrets-grid">${secrets.map(secretCard).join('')}</div></section>`;
     return null;
   }
   const secret = secrets.find((item) => item.slug === slug);
-  document.title = secret ? `${secret.title.replace(/\.$/, '')} — Stillplay` : 'A secret for another day — Stillplay';
+  document.title = secret ? `${secret.title.replace(/\.$/, '')} · Stillplay` : "掌故尚未收录 · Stillplay";
   let cleanup = null;
   let gone = false;
   renderSecret(slug, main, { showToast }).then((dispose) => {

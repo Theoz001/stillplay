@@ -16,7 +16,7 @@ function decorate(game, index) {
     playable,
     routable: Boolean(game.path),
     dailyPath: playable ? `/daily/${game.id}` : null,
-    statusLabel: playable ? 'Ready to play' : game.status === 'later' ? 'Later' : 'Coming soon',
+    statusLabel: playable ? '可游玩' : game.status === 'later' ? '筹备中' : '即将推出',
   };
 }
 

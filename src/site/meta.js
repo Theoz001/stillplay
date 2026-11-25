@@ -6,52 +6,52 @@
 import { siteGames } from './registry.js';
 
 export const SITE_NAME = 'Stillplay';
-export const TAGLINE = 'A little time, well wasted.';
+export const TAGLINE = "经典小游戏";
 const suffix = ` — ${SITE_NAME}`;
 
 const fixed = {
   '/': {
-    title: `${SITE_NAME} — A little time, well wasted.`,
-    description: 'The games that came with Windows XP, back in your browser. Minesweeper, FreeCell and more. No installs, no accounts, a shared daily challenge.',
-    og: { kicker: 'Good games never get old', heading: 'A little time.', accent: 'Well wasted.', art: 'home' },
+    title: `${SITE_NAME} · 经典小游戏`,
+    description: "重温 Windows XP 上的扫雷、蜘蛛纸牌、空当接龙等游戏，支持每日挑战。",
+    og: { kicker: "经典小游戏", heading: "闲来一局", accent: "随时开玩", art: 'home' },
   },
   '/daily': {
-    title: `Today’s daily games${suffix}`,
-    description: 'One shared board and one shared deal each day, the same for everyone. Keep your streak going.',
-    og: { kicker: 'Daily challenge', heading: 'Same game.', accent: 'Everyone, today.', art: 'daily' },
+    title: `今日挑战${suffix}`,
+    description: "每天都有相同的牌局或雷区，连续获胜可以累积连胜天数。",
+    og: { kicker: "每日挑战", heading: "每日挑战", accent: "同一局，一起玩", art: 'daily' },
   },
   '/about': {
-    title: `About${suffix}`,
-    description: 'Why Stillplay exists, how the games are made, and where they run: a small homage to the games that came with Windows XP.',
-    og: { kicker: 'About the project', heading: 'Some things are', accent: 'worth keeping.', art: 'home' },
+    title: `关于${suffix}`,
+    description: "了解 Stillplay 的制作、玩法和本地运行方式。",
+    og: { kicker: "关于本项目", heading: "值得珍藏的", accent: "经典游戏", art: 'home' },
   },
   '/secrets': {
-    title: `Small games. Good secrets.${suffix}`,
-    description: 'Interactive notes on the rules, numbered deals and small details behind the classic games.',
-    og: { kicker: 'Worth another look', heading: 'Small games.', accent: 'Good secrets.', art: 'secrets' },
+    title: `游戏掌故${suffix}`,
+    description: "关于规则、牌局编号和经典游戏的小知识。",
+    og: { kicker: "游戏掌故", heading: "小游戏", accent: "掌故", art: 'secrets' },
   },
 };
 
 function gamePage(game, daily) {
   if (!game.playable) {
     return {
-      title: `${game.title}, coming soon${suffix}`,
-      description: `${game.title} is on its way to Stillplay. ${game.tagline}`,
-      og: { kicker: 'Coming soon', heading: game.title, accent: game.tagline, art: game.id },
+      title: `${game.title}即将推出${suffix}`,
+      description: `${game.title}即将加入 Stillplay。${game.tagline}`,
+      og: { kicker: "即将推出", heading: game.title, accent: game.tagline, art: game.id },
     };
   }
   if (daily) {
     return {
-      title: `Daily ${game.title}${suffix}`,
-      description: `Today’s ${game.title} ${game.dailyNoun}, the same for everyone. It changes at midnight UTC.`,
-      og: { kicker: 'Daily challenge', heading: `Daily ${game.title}`, accent: 'Same for everyone.', art: game.id },
+      title: `每日挑战 · ${game.title}${suffix}`,
+      description: `今天的${game.title}：${game.dailyNoun}。每天北京时间早上 8 点更新。`,
+      og: { kicker: "每日挑战", heading: `每日挑战 · ${game.title}`, accent: "今日挑战人人相同", art: game.id },
       game,
     };
   }
   return {
-    title: `Play ${game.title} online${suffix}`,
-    description: game.description || `${game.title} in your browser. ${game.tagline}`,
-    og: { kicker: 'Free to play in your browser', heading: game.title, accent: game.tagline, art: game.id },
+    title: `${game.title}${suffix}`,
+    description: game.description || `${game.title}。${game.tagline}`,
+    og: { kicker: "本机免费畅玩", heading: game.title, accent: game.tagline, art: game.id },
     game,
   };
 }
@@ -74,7 +74,7 @@ export function pageMeta(path, { secrets = [] } = {}) {
       return {
         title: `${entry.title.replace(/\.$/, '')}${suffix}`,
         description: entry.description,
-        og: { kicker: `Secret ${entry.number}`, heading: entry.title, accent: '', art: 'secrets' },
+        og: { kicker: `掌故 ${entry.number}`, heading: entry.title, accent: '', art: 'secrets' },
       };
     }
   }
@@ -122,7 +122,7 @@ export function jsonLd(path, origin, meta) {
       description: meta.description,
       genre: meta.game.genre,
       gamePlatform: 'Web browser',
-      applicationCategory: 'Game',
+      applicationCategory: "游戏",
       operatingSystem: 'Any (runs in a web browser)',
       playMode: 'SinglePlayer',
       isAccessibleForFree: true,

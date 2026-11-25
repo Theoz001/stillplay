@@ -13,16 +13,16 @@ export function render(main) {
     const solved = result !== undefined;
     return `<li class="daily-row${solved ? ' is-solved' : ''}">
       ${gameGlyph(game.icon, 'daily-glyph')}
-      <div class="daily-row-text"><h2><a href="${game.dailyPath}">Daily ${escape(game.title)}</a></h2><p>${solved ? `Solved today${result === null ? '' : ` in ${escape(formatTime(result))}`}. Nicely done.` : `Today’s ${escape(game.dailyNoun)} is waiting.`}</p></div>
-      <dl class="daily-row-stats"><div><dt>Streak</dt><dd>${stats.currentStreak}</dd></div><div><dt>Best</dt><dd>${stats.bestStreak}</dd></div></dl>
-      <a class="button${solved ? '' : ' button-primary'}" href="${game.dailyPath}" tabindex="-1" aria-hidden="true">${solved ? 'Play again' : 'Play'} ${icon('arrowRight', { size: 16 })}</a>
+      <div class="daily-row-text"><h2><a href="${game.dailyPath}">每日挑战 · ${escape(game.title)}</a></h2><p>${solved ? `今天已完成${result === null ? '' : ` ，用时 ${escape(formatTime(result))}`}。` : `今日挑战尚未完成。`}</p></div>
+      <dl class="daily-row-stats"><div><dt>连胜</dt><dd>${stats.currentStreak}</dd></div><div><dt>最佳纪录</dt><dd>${stats.bestStreak}</dd></div></dl>
+      <a class="button${solved ? '' : ' button-primary'}" href="${game.dailyPath}" tabindex="-1" aria-hidden="true">${solved ? "再玩一次" : "开始"} ${icon('arrowRight', { size: 16 })}</a>
     </li>`;
   }).join('');
   main.innerHTML = `<section class="page-intro wrap">
     <p class="eyebrow">${escape(formatDate(today, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }))}</p>
-    <h1>Same game.<br><em>Everyone, today.</em></h1>
-    <p>Each game gets one shared board or deal a day, the same for every player in the world. Solve it on consecutive days to build a streak. New ones arrive in ${untilReset()}, at midnight UTC.</p>
+    <h1>每日挑战<br><em>同一局，一起玩</em></h1>
+    <p>每款游戏每天提供一局相同的挑战。连续完成可以累积连胜天数。距离下一次更新还有 ${untilReset()}；北京时间每天早上 8 点更新。</p>
   </section>
   <section class="wrap"><ul class="daily-rows">${rows}</ul>
-  <p class="dialog-note">${icon('lock', { size: 14 })}Streaks are kept on this device only.</p></section>`;
+  <p class="dialog-note">${icon('lock', { size: 14 })}连胜记录保存在本机。</p></section>`;
 }

@@ -16,7 +16,7 @@ async function getModule() {
         bytes = await readFile(url);
       } else {
         const response = await fetch(url);
-        if (!response.ok) throw new Error(`Minesweeper could not load (${response.status}).`);
+        if (!response.ok) throw new Error(`无法载入扫雷（${response.status}）。`);
         bytes = await response.arrayBuffer();
       }
       return WebAssembly.compile(bytes);
@@ -29,19 +29,19 @@ async function getModule() {
 }
 
 function checkOptions(level, seed) {
-  if (!LEVELS.includes(level)) throw new RangeError(`Unknown Minesweeper level: ${level}`);
+  if (!LEVELS.includes(level)) throw new RangeError(`未知扫雷难度：${level}`);
   if (!Number.isInteger(seed) || seed < 0 || seed > 0xffff_ffff) {
-    throw new RangeError('The seed must be an unsigned 32-bit integer.');
+    throw new RangeError("种子必须是 32 位无符号整数。");
   }
 }
 
 function validateReplay(replay) {
   if (!replay || replay.version !== 1 || replay.game !== 'minesweeper') {
-    throw new TypeError('Expected a version 1 Minesweeper replay.');
+    throw new TypeError("回放须为第 1 版扫雷回放。");
   }
   checkOptions(replay.level, replay.seed);
   if (!Array.isArray(replay.actions) || replay.actions.length > MAX_ACTIONS) {
-    throw new RangeError(`A replay must have at most ${MAX_ACTIONS} actions.`);
+    throw new RangeError(`最多支持 ${MAX_ACTIONS} 步的回放。`);
   }
   const width = replay.level === 'beginner' ? 9 : replay.level === 'intermediate' ? 16 : 30;
   const height = replay.level === 'beginner' ? 9 : 16;
@@ -51,7 +51,7 @@ function validateReplay(replay) {
         !Number.isInteger(action.y) || action.x < 0 || action.x >= width ||
         action.y < 0 || action.y >= height || !Number.isSafeInteger(action.t) ||
         action.t < previousTime) {
-      throw new TypeError('Replay actions must have valid cells and increasing millisecond timestamps.');
+      throw new TypeError("回放必须包含有效格子，操作时间须按毫秒递增。");
     }
     previousTime = action.t;
   }
@@ -100,7 +100,7 @@ export async function createMinesweeper({ level = 'beginner', seed = 1 } = {}) {
     if (!Number.isInteger(x) || !Number.isInteger(y) || x < 0 || x >= width || y < 0 || y >= height) {
       return state();
     }
-    if (actions.length >= MAX_ACTIONS) throw new RangeError('The game has reached the replay action limit.');
+    if (actions.length >= MAX_ACTIONS) throw new RangeError("已达到回放步数上限。");
     lastTime = time ?? Math.max(lastTime, Date.now() - startedAt);
     actions.push({ type, x, y, t: lastTime });
     core[`ms_${type}`](x, y);

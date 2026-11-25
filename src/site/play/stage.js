@@ -15,6 +15,9 @@ import { showToast } from '../ui/toast.js';
 import { recordStart, recordWin } from './stats.js';
 
 const FIDELITY_KEY = 'stillplay-fidelity';
+const TABLE_SIZE_KEY = 'stillplay-table-size';
+const DEFAULT_TABLE_SIZE = 100;
+const TABLE_SIZES = [80, 90, 100, 110, 120, 130];
 let activeStage = null;
 
 /**
@@ -41,25 +44,27 @@ function button(command, iconName, label, { tip = label, pressed, hidden = false
 function chromeHTML(game, { daily, variant }) {
   const sound = audio.soundEnabled();
   const left = [
-    button('new', 'new', 'New game', { tip: 'New game · F2' }),
-    button('undo', 'undo', 'Undo', { tip: 'Undo · Ctrl Z', hidden: true }),
-    button('hint', 'hint', 'Hint', { tip: 'Hint · H', hidden: true }),
+    button('new', 'new', "新游戏", { tip: "新游戏 · F2" }),
+    button('undo', 'undo', "撤销", { tip: "撤销 · Ctrl Z", hidden: true }),
+    button('hint', 'hint', "提示", { tip: "提示 · H", hidden: true }),
   ];
   if (variant === 'page') {
-    left.push(`<a class="chrome-button" href="${daily ? game.path : game.dailyPath}" data-tip="${daily ? 'Back to a regular game' : 'Today’s shared challenge'}">${icon('daily')}<span class="chrome-label">${daily ? 'Regular game' : 'Daily'}</span></a>`);
+    left.push(`<a class="chrome-button" href="${daily ? game.path : game.dailyPath}" data-tip="${daily ? "返回普通局" : "今日挑战"}">${icon('daily')}<span class="chrome-label">${daily ? "普通局" : "每日挑战"}</span></a>`);
   }
   const right = [
-    button('sound', sound ? 'soundOn' : 'soundOff', 'Sound', { tip: 'Sound · M', pressed: sound }),
-    button('fidelity', 'pixels', 'Pixels', { tip: 'Original pixels or crisp drawing · P', pressed: false, hidden: true }),
-    button('stats', 'stats', 'Stats', { tip: 'Your stats · S' }),
+    button('sound', sound ? 'soundOn' : 'soundOff', "音效", { tip: "音效 · M", pressed: sound }),
+    button('fidelity', 'pixels', "像素牌面", { tip: "切换像素与清晰牌面 · P", pressed: false, hidden: true }),
+    button('stats', 'stats', "统计", { tip: "游戏统计 · S" }),
   ];
   if (variant === 'page') {
-    right.push(button('focus', 'focus', 'Focus', { tip: 'Focus mode · Z', pressed: false }));
-    right.push(button('keys', 'keyboard', 'Shortcuts', { tip: 'Keyboard shortcuts · ?' }));
+    const sizes = TABLE_SIZES.map((size) => `<option value="${size}">${size}%</option>`).join('');
+    right.push(`<label class="table-size"><span>大小</span><select data-table-size aria-label="牌桌和牌面大小">${sizes}</select></label>`);
+    right.push(button('focus', 'focus', "专注模式", { tip: "专注模式 · Z", pressed: false }));
+    right.push(button('keys', 'keyboard', "快捷键", { tip: "键盘快捷键 · ?" }));
   } else {
-    right.push(`<a class="chrome-button" href="${game.path}" data-tip="Open the full ${escape(game.title)} page">${icon('arrow')}<span class="chrome-label">Full page</span></a>`);
+    right.push(`<a class="chrome-button" href="${game.path}" data-tip="打开 ${escape(game.title)} 的完整牌桌">${icon('arrow')}<span class="chrome-label">打开牌桌</span></a>`);
   }
-  return `<div class="chrome" role="group" aria-label="${escape(game.title)} controls"><div class="chrome-group">${left.join('')}</div><div class="chrome-group">${right.join('')}</div></div>`;
+  return `<div class="chrome" role="group" aria-label="${escape(game.title)}操作"><div class="chrome-group">${left.join('')}</div><div class="chrome-group">${right.join('')}</div></div>`;
 }
 
 /**
@@ -79,6 +84,27 @@ export async function mountStage(container, game, { daily = false, variant = 'pa
   const stage = container.querySelector('.stage');
   const gameElement = stage.querySelector('.stage-game');
   const find = (command) => stage.querySelector(`[data-command="${command}"]`);
+  const sizeControl = stage.querySelector('[data-table-size]');
+  if (sizeControl) {
+    const nativeWindow = window.webkit?.messageHandlers?.tableSize;
+    if (nativeWindow) document.documentElement.dataset.nativeWindow = '';
+    const saved = readStore(TABLE_SIZE_KEY, DEFAULT_TABLE_SIZE);
+    const initial = TABLE_SIZES.includes(saved) ? saved : DEFAULT_TABLE_SIZE;
+    const applySize = (size) => {
+      gameElement.style.setProperty('--table-scale', String(size / 100));
+      nativeWindow?.postMessage(size);
+    };
+    sizeControl.value = String(initial);
+    applySize(initial);
+    sizeControl.addEventListener('change', () => {
+      const size = Number(sizeControl.value);
+      if (!TABLE_SIZES.includes(size)) return;
+      applySize(size);
+      if (!writeStore(TABLE_SIZE_KEY, size)) showToast("已调整大小，本机未能保存。");
+      // The card tables observe layout directly; the Minesweeper canvas listens for size changes.
+      window.dispatchEvent(new Event('resize'));
+    }, { signal });
+  }
 
   // ---- play statistics -------------------------------------------------------
   // A game counts as played on its first interaction after a fresh deal.
@@ -105,7 +131,7 @@ export async function mountStage(container, game, { daily = false, variant = 'pa
       if (destroyed) return;
       showWin({ game, summary, stats, handle, onAgain: () => command('new') });
       onWinShown?.(summary);
-    }).catch(() => showToast('Nicely done.'));
+    }).catch(() => showToast("已完成。"));
   }
 
   // ---- sound and drawing mode -----------------------------------------------
@@ -117,7 +143,7 @@ export async function mountStage(container, game, { daily = false, variant = 'pa
     const control = find('sound');
     control.setAttribute('aria-pressed', String(on));
     control.querySelector('svg').outerHTML = icon(on ? 'soundOn' : 'soundOff');
-    control.querySelector('.chrome-label').textContent = on ? 'Sound on' : 'Sound off';
+    control.querySelector('.chrome-label').textContent = on ? "音效开启" : "音效关闭";
   }
   function toggleSound() {
     const on = !audio.soundEnabled();
@@ -127,15 +153,15 @@ export async function mountStage(container, game, { daily = false, variant = 'pa
       play('toggle-on');
     }
     renderSound();
-    showToast(on ? 'Sound on.' : 'Sound off.');
+    showToast(on ? "已开启音效。" : "已关闭音效。");
   }
 
-  let fidelity = readStore(FIDELITY_KEY, 'pixels') === 'crisp' ? 'crisp' : 'pixels';
+  let fidelity = readStore(FIDELITY_KEY, 'crisp') === 'crisp' ? 'crisp' : 'pixels';
   function renderFidelity() {
     const control = find('fidelity');
     control.setAttribute('aria-pressed', String(fidelity === 'crisp'));
     control.querySelector('svg').outerHTML = icon(fidelity === 'pixels' ? 'pixels' : 'crisp');
-    control.querySelector('.chrome-label').textContent = fidelity === 'pixels' ? 'Original pixels' : 'Crisp';
+    control.querySelector('.chrome-label').textContent = fidelity === 'pixels' ? "像素牌面" : "清晰牌面";
   }
   function setFidelity(next) {
     fidelity = next;
@@ -154,7 +180,7 @@ export async function mountStage(container, game, { daily = false, variant = 'pa
     if (control) {
       control.setAttribute('aria-pressed', String(on));
       control.querySelector('svg').outerHTML = icon(on ? 'unfocus' : 'focus');
-      control.querySelector('.chrome-label').textContent = on ? 'Leave focus' : 'Focus';
+      control.querySelector('.chrome-label').textContent = on ? "退出专注" : "专注模式";
     }
     if (on && document.fullscreenEnabled && !document.fullscreenElement) {
       root.requestFullscreen?.({ navigationUI: 'hide' }).catch(() => { /* CSS focus mode still applies */ });
@@ -174,7 +200,7 @@ export async function mountStage(container, game, { daily = false, variant = 'pa
       await handle.newGame?.();
       play('new-game');
     } else if (name === 'undo') {
-      if (handle.undo?.() === false) showToast('Nothing to undo yet.');
+      if (handle.undo?.() === false) showToast("还没有可以撤销的操作。");
     } else if (name === 'hint') handle.hint?.();
     else if (name === 'sound') toggleSound();
     else if (name === 'fidelity') setFidelity(fidelity === 'pixels' ? 'crisp' : 'pixels');

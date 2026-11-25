@@ -21,28 +21,28 @@
  */
 export const games = [
   {
-    id: 'minesweeper', title: 'Minesweeper', path: '/minesweeper', icon: 'mine', status: 'playable',
-    tagline: 'Ten mines. Countless memories.',
+    id: 'minesweeper', title: "扫雷", path: '/minesweeper', icon: 'mine', status: 'playable',
+    tagline: "根据数字找出埋藏的地雷。",
     mount: () => import('./minesweeper-ui.js').then((m) => m.mountMinesweeper),
   },
   {
-    id: 'freecell', title: 'FreeCell', path: '/freecell', icon: 'freecell', status: 'playable',
-    tagline: 'Every deal, a possibility.',
+    id: 'freecell', title: '空当接龙', path: '/freecell', icon: 'freecell', status: 'playable',
+    tagline: "四个空位，步步推演。",
     mount: () => import('./freecell-ui.js').then((m) => m.mountFreecell),
   },
   {
-    id: 'solitaire', title: 'Solitaire', path: '/solitaire', icon: 'solitaire', status: 'playable',
-    tagline: 'Draw one or draw three. Then the cascade.',
+    id: 'solitaire', title: "经典接龙", path: '/solitaire', icon: 'solitaire', status: 'playable',
+    tagline: "每次翻一张或三张，依次收齐四种花色。",
     mount: () => import('./solitaire-ui.js').then((m) => m.mountSolitaire),
   },
   {
-    id: 'spider', title: 'Spider Solitaire', path: '/spider', icon: 'spider', status: 'playable',
-    tagline: 'One suit, two suits, or all four.',
+    id: 'spider', title: "蜘蛛纸牌", path: '/spider', icon: 'spider', status: 'playable',
+    tagline: "可选单花色、双花色或四花色。",
     mount: () => import('./spider-ui.js').then((m) => m.mountSpider),
   },
   {
-    id: 'hearts', title: 'Hearts', path: '/hearts', icon: 'hearts', status: 'playable',
-    tagline: 'Three rivals. Avoid the queen.',
+    id: 'hearts', title: "红心大战", path: '/hearts', icon: 'hearts', status: 'playable',
+    tagline: "与三名电脑玩家对局，小心黑桃 Q。",
     mount: () => import('./hearts-ui.js').then((m) => m.mountHearts),
   },
 ];

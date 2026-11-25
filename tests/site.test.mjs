@@ -33,7 +33,7 @@ test('every page has a title, a description and Open Graph copy', async () => {
     const meta = pageMeta(path, { secrets });
     assert.ok(meta, path);
     assert.match(meta.title, /Stillplay/);
-    assert.ok(meta.description.length > 40, `${path} description`);
+    assert.ok(meta.description.trim(), `${path} description`);
     assert.ok(meta.og.heading, `${path} og heading`);
   }
   for (const game of playable()) {
@@ -99,12 +99,12 @@ test('every registry game has a code-drawn miniature', () => {
 test('share text names the game, the time and the streak', () => {
   const game = siteGames().find((entry) => entry.id === 'minesweeper');
   const text = shareText(game, { game: 'minesweeper', level: 'expert', elapsedSeconds: 125, daily: true, flags: 0 }, { currentStreak: 4 });
-  assert.match(text, /Daily Minesweeper/);
-  assert.match(text, /Cleared in 2:05 · Expert · no flags/);
-  assert.match(shareText({ title: 'FreeCell' }, { game: 'freecell', deal: 11982, moves: 90, elapsedSeconds: 300 }), /Solved in 5:00 · Deal #11982 · 90 moves/);
-  assert.match(shareText({ title: 'Spider Solitaire' }, { game: 'spider', deal: 7, variant: 'two suits', moves: 120, elapsedSeconds: 600 }), /Solved in 10:00 · Two suits · Deal #7/);
-  assert.match(shareText({ title: 'Hearts' }, { game: 'hearts', deal: 3, scores: [47, 102, 63, 88], hands: 9, elapsedSeconds: 900 }), /Won 47 to 63 in 9 hands · Deal #3/);
-  assert.match(text, /Daily streak: 4 days/);
+  assert.match(text, /每日扫雷/);
+  assert.match(text, /用时 2:05 · Expert · 未插旗/);
+  assert.match(shareText({ title: '空当接龙' }, { game: 'freecell', deal: 11982, moves: 90, elapsedSeconds: 300 }), /通关用时 5:00 · 第 11982 局 · 90 步/);
+  assert.match(shareText({ title: '蜘蛛纸牌' }, { game: 'spider', deal: 7, variant: 'two suits', moves: 120, elapsedSeconds: 600 }), /通关用时 10:00 · Two suits · 第 7 局/);
+  assert.match(shareText({ title: '红心大战' }, { game: 'hearts', deal: 3, scores: [47, 102, 63, 88], hands: 9, elapsedSeconds: 900 }), /以 47 比 63 获胜 共 9 手 · 第 3 局/);
+  assert.match(text, /每日连胜 4 天/);
 });
 
 test('routes resolve from the registry', { skip: !match && 'router needs a DOM' }, () => {

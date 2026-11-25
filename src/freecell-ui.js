@@ -1,9 +1,9 @@
 import { createFreecell, loadFreecellReplay } from './freecell-core.js';
 import { createCardTable } from './card-table.js';
 import { dailyDeal } from './shared.js';
-import { SUITS, RANKS, PATHS, cardName } from './cards.js';
+import { SUIT_LABELS as SUITS, RANKS, PATHS, cardName } from './cards.js';
 
-const locationName = ref => ref.type === 'column' ? `column ${ref.index + 1}` : ref.type === 'freecell' ? `free cell ${ref.index + 1}` : `${SUITS[ref.index]} foundation`;
+const locationName = ref => ref.type === 'column' ? `第 ${ref.index + 1} 列` : ref.type === 'freecell' ? `第 ${ref.index + 1} 个空当` : `${SUITS[ref.index]}回收区`;
 const utcDeal = () => dailyDeal();
 const KIND = { c: 'column', f: 'freecell', h: 'foundation' };
 const toRef = pile => ({ type: KIND[pile[0]], index: Number(pile.slice(1)) });
@@ -12,7 +12,7 @@ const red = card => [1, 2].includes(Math.floor(card / 13));
 const buildsOn = (card, below) => card % 13 + 1 === below % 13 && red(card) !== red(below);
 
 /** The keyboard and mouse sheet the site shows for this game (the shell reads it from the handle). */
-const SHORTCUTS = [['Click a card, then a place', 'Move it'], ['Double-click', 'Send a card home, or to a free cell'], ['Ctrl / ⌘ + Z', 'Undo'], ['H', 'Hint'], ['Arrow keys · Enter', 'Pick up and put down'], ['Esc', 'Clear the selection'], ['F2', 'New deal'], ['F1', 'How to play']];
+const SHORTCUTS = [["先点牌，再点目标位置", "移动选中的牌"], ["双击", "自动移入回收区或空当"], ['Ctrl / ⌘ + Z', "撤销"], ['H', "提示"], ["方向键 · 回车", "选牌、放牌"], ['Esc', "取消选牌"], ['F2', "重新发牌"], ['F1', "玩法说明"]];
 
 function injectStyles() {
   if (document.querySelector('link[data-freecell-styles]')) return;
@@ -27,20 +27,20 @@ function injectStyles() {
 function frame(daily, chrome) {
   // In the site shell, Undo and Hint live in the page toolbar; only FreeCell's own extras stay below the window.
   const quick = chrome
-    ? '<button type="button" data-action="auto">Auto finish</button><span aria-hidden="true">·</span><button type="button" data-action="deal">Choose a deal</button>'
-    : '<button type="button" data-action="undo">Undo</button><span aria-hidden="true">·</span><button type="button" data-action="hint">Hint</button><span aria-hidden="true">·</span><button type="button" data-action="auto">Auto finish</button><span aria-hidden="true">·</span><button type="button" data-action="deal">Choose a deal</button>';
-  const freecells = [0, 1, 2, 3].map(index => `<div class="fc-slot fc-freecell-slot" data-fc-pile="f${index}"><button type="button" class="fc-empty-slot" data-ct-target data-loc="freecell" data-index="${index}" aria-label="Empty free cell ${index + 1}"><span class="fc-slot-outline"></span></button></div>`).join('');
-  const foundations = [0, 1, 2, 3].map(index => `<div class="fc-slot fc-foundation-slot" data-fc-pile="h${index}"><button type="button" class="fc-foundation" data-ct-target data-loc="foundation" data-index="${index}" aria-label="${SUITS[index]} foundation, empty"><svg class="fc-foundation-suit" viewBox="0 0 24 24" aria-hidden="true"><path d="${PATHS[index]}" fill="currentColor"/></svg></button></div>`).join('');
-  const columns = [0, 1, 2, 3, 4, 5, 6, 7].map(index => `<div class="fc-column" data-fc-pile="c${index}" role="group" aria-label="Column ${index + 1}"><button type="button" class="fc-column-target" data-ct-target data-loc="column" data-index="${index}" aria-label="Empty column ${index + 1}"></button></div>`).join('');
-  return `<section class="fc-window" aria-label="FreeCell game"><div class="fc-titlebar"><span class="fc-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="13" height="18" rx="1" fill="#fff" stroke="#142b64"/><rect x="9" y="2" width="13" height="18" rx="1" fill="#fff" stroke="#142b64"/><path d="m15.5 5 4 6-4 6-4-6Z" fill="#b4232b"/></svg></span><span class="fc-title-text">FreeCell</span><span class="fc-title-controls" aria-hidden="true"><i></i><i></i><i>×</i></span></div>`
-    + `<div class="fc-menubar"><div class="fc-menu-wrap"><button type="button" class="fc-menu-trigger" data-action="menu-game" aria-expanded="false" aria-haspopup="menu"><u>G</u>ame</button><div class="fc-dropdown" role="menu" data-menu="game" hidden><button role="menuitem" type="button" data-action="new">New game <span>F2</span></button><button role="menuitem" type="button" data-action="deal">Select deal…</button><div class="fc-menu-separator"></div><button role="menuitem" type="button" data-action="undo">Undo <span>Ctrl+Z</span></button><button role="menuitem" type="button" data-action="hint">Hint <span>H</span></button><button role="menuitem" type="button" data-action="auto">Auto finish</button></div></div>`
-    + `<div class="fc-menu-wrap"><button type="button" class="fc-menu-trigger" data-action="menu-help" aria-expanded="false" aria-haspopup="menu"><u>H</u>elp</button><div class="fc-dropdown" role="menu" data-menu="help" hidden><button role="menuitem" type="button" data-action="help">How to play <span>F1</span></button><button role="menuitem" type="button" data-action="about">About this version</button></div></div><span class="fc-menu-deal">${daily ? 'Daily deal' : 'Classic rules'}</span></div>`
-    + `<div class="fc-felt"><div class="fc-cell-labels"><span>FREE CELLS</span><span>FOUNDATIONS</span></div><div class="fc-top-row"><div class="fc-freecells">${freecells}</div><div class="fc-foundations">${foundations}</div></div><div class="fc-tableau">${columns}</div><div class="fc-win-panel" role="status" hidden></div></div>`
-    + `<div class="fc-statusbar"><span class="fc-status-left">0 moves</span><span class="fc-status-deal">Deal #1</span></div></section>`
+    ? "<button type=\"button\" data-action=\"auto\">自动收牌</button><span aria-hidden=\"true\">·</span><button type=\"button\" data-action=\"deal\">选择牌局</button>"
+    : "<button type=\"button\" data-action=\"undo\">撤销</button><span aria-hidden=\"true\">·</span><button type=\"button\" data-action=\"hint\">提示</button><span aria-hidden=\"true\">·</span><button type=\"button\" data-action=\"auto\">自动收牌</button><span aria-hidden=\"true\">·</span><button type=\"button\" data-action=\"deal\">选择牌局</button>";
+  const freecells = [0, 1, 2, 3].map(index => `<div class="fc-slot fc-freecell-slot" data-fc-pile="f${index}"><button type="button" class="fc-empty-slot" data-ct-target data-loc="freecell" data-index="${index}" aria-label="第 ${index + 1} 个空当，空"><span class="fc-slot-outline"></span></button></div>`).join('');
+  const foundations = [0, 1, 2, 3].map(index => `<div class="fc-slot fc-foundation-slot" data-fc-pile="h${index}"><button type="button" class="fc-foundation" data-ct-target data-loc="foundation" data-index="${index}" aria-label="${SUITS[index]}回收区，空"><svg class="fc-foundation-suit" viewBox="0 0 24 24" aria-hidden="true"><path d="${PATHS[index]}" fill="currentColor"/></svg></button></div>`).join('');
+  const columns = [0, 1, 2, 3, 4, 5, 6, 7].map(index => `<div class="fc-column" data-fc-pile="c${index}" role="group" aria-label="第 ${index + 1} 列"><button type="button" class="fc-column-target" data-ct-target data-loc="column" data-index="${index}" aria-label="空的第 ${index + 1} 列"></button></div>`).join('');
+  return `<section class="fc-window" aria-label="空当接龙牌桌"><div class="fc-titlebar"><span class="fc-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="13" height="18" rx="1" fill="#fff" stroke="#142b64"/><rect x="9" y="2" width="13" height="18" rx="1" fill="#fff" stroke="#142b64"/><path d="m15.5 5 4 6-4 6-4-6Z" fill="#b4232b"/></svg></span><span class="fc-title-text">空当接龙</span><span class="fc-title-controls" aria-hidden="true"><i></i><i></i><i>×</i></span></div>`
+    + `<div class="fc-menubar"><div class="fc-menu-wrap"><button type="button" class="fc-menu-trigger" data-action="menu-game" aria-expanded="false" aria-haspopup="menu">游戏</button><div class="fc-dropdown" role="menu" data-menu="game" hidden><button role="menuitem" type="button" data-action="new">新游戏 <span>F2</span></button><button role="menuitem" type="button" data-action="deal">选择牌局…</button><div class="fc-menu-separator"></div><button role="menuitem" type="button" data-action="undo">撤销 <span>Ctrl+Z</span></button><button role="menuitem" type="button" data-action="hint">提示 <span>H</span></button><button role="menuitem" type="button" data-action="auto">自动收牌</button></div></div>`
+    + `<div class="fc-menu-wrap"><button type="button" class="fc-menu-trigger" data-action="menu-help" aria-expanded="false" aria-haspopup="menu">帮助</button><div class="fc-dropdown" role="menu" data-menu="help" hidden><button role="menuitem" type="button" data-action="help">玩法说明 <span>F1</span></button><button role="menuitem" type="button" data-action="about">关于此版本</button></div></div><span class="fc-menu-deal">${daily ? "每日牌局" : "经典规则"}</span></div>`
+    + `<div class="fc-felt"><div class="fc-cell-labels"><span>空当</span><span>FOUNDATIONS</span></div><div class="fc-top-row"><div class="fc-freecells">${freecells}</div><div class="fc-foundations">${foundations}</div></div><div class="fc-tableau">${columns}</div><div class="fc-win-panel" role="status" hidden></div></div>`
+    + `<div class="fc-statusbar"><span class="fc-status-left">0 步</span><span class="fc-status-deal">第 1 局</span></div></section>`
     + `<div class="fc-below-game"><div class="fc-quick-actions">${quick}</div><p class="fc-message" role="status" aria-live="polite"></p></div>`
-    + `<dialog class="fc-dialog" data-dialog="deal" aria-labelledby="fc-deal-title"><form method="dialog" class="fc-dialog-form"><h2 id="fc-deal-title">Select a deal</h2><p>Enter a deal number from 1 to 32,000.</p><label for="fc-deal-input">Deal number</label><input id="fc-deal-input" name="deal" type="number" min="1" max="32000" step="1" required><p class="fc-dialog-error" data-deal-error aria-live="polite"></p><div class="fc-dialog-actions"><button class="fc-classic-button" type="button" data-action="cancel-dialog">Cancel</button><button class="fc-classic-button fc-default-button" type="submit">Deal</button></div></form></dialog>`
-    + `<dialog class="fc-dialog" data-dialog="help" aria-labelledby="fc-help-title"><div class="fc-dialog-form"><h2 id="fc-help-title">How to play FreeCell</h2><p>Build each foundation from ace to king, following suit. Stack columns in descending order, alternating red and black.</p><p>Drag a card or an ordered run, or select it and then its destination. Double-click a card to send it home, or to a free cell. Empty free cells and columns let you move longer runs.</p><p>With the keyboard, Tab or the arrow keys move between piles, Enter picks up and puts down, and Escape puts cards back. <strong>F2</strong> deals a new game. <strong>Ctrl+Z</strong> undoes. <strong>H</strong> suggests a move. Auto finish sends only safe cards to the foundations.</p><div class="fc-dialog-actions"><button type="button" class="fc-classic-button fc-default-button" data-action="cancel-dialog">Got it</button></div></div></dialog>`
-    + `<dialog class="fc-dialog" data-dialog="about" aria-labelledby="fc-about-title"><div class="fc-dialog-form"><h2 id="fc-about-title">A familiar game, made fresh</h2><p>This is our own FreeCell, written in C and compiled to WebAssembly, with classic rules and numbered deals.</p><p>All card artwork is drawn for this project.</p><div class="fc-dialog-actions"><button type="button" class="fc-classic-button fc-default-button" data-action="cancel-dialog">Close</button></div></div></dialog>`;
+    + `<dialog class="fc-dialog" data-dialog="deal" aria-labelledby="fc-deal-title"><form method="dialog" class="fc-dialog-form"><h2 id="fc-deal-title">选择牌局</h2><p>请输入 1 到 32,000 之间的牌局编号。</p><label for="fc-deal-input">牌局编号</label><input id="fc-deal-input" name="deal" type="number" min="1" max="32000" step="1" required><p class="fc-dialog-error" data-deal-error aria-live="polite"></p><div class="fc-dialog-actions"><button class="fc-classic-button" type="button" data-action="cancel-dialog">取消</button><button class="fc-classic-button fc-default-button" type="submit">发牌</button></div></form></dialog>`
+    + `<dialog class="fc-dialog" data-dialog="help" aria-labelledby="fc-help-title"><div class="fc-dialog-form"><h2 id="fc-help-title">空当接龙玩法</h2><p>将每种花色从 A 到 K 依次移入回收区。牌列中按点数递减、红黑交替叠放。</p><p>可以拖动一张牌或一组连续牌，也可以先选牌再点目标位置。双击可将牌移入回收区或空当。保留的空当和空列越多，一次能移动的牌越多。</p><p>按 Tab 或方向键切换牌堆，按回车选牌或放牌，按 Esc 取消。 <strong>F2</strong> 重新发牌。 <strong>Ctrl+Z</strong> 撤销。 <strong>H</strong> 显示下一步提示。自动收牌只会移动不影响后续走法的牌。</p><div class="fc-dialog-actions"><button type="button" class="fc-classic-button fc-default-button" data-action="cancel-dialog">知道了</button></div></div></dialog>`
+    + `<dialog class="fc-dialog" data-dialog="about" aria-labelledby="fc-about-title"><div class="fc-dialog-form"><h2 id="fc-about-title">关于空当接龙</h2><p>本版采用经典空当接龙规则，支持按编号选局。</p><p>所有牌面均由本项目绘制。</p><div class="fc-dialog-actions"><button type="button" class="fc-classic-button fc-default-button" data-action="cancel-dialog">关闭</button></div></div></dialog>`;
 }
 
 export async function mountFreecell(container, { daily = false, onWin = () => {}, onStart = () => {}, sound = () => {}, chrome = false } = {}) {
@@ -48,7 +48,7 @@ export async function mountFreecell(container, { daily = false, onWin = () => {}
   const requestedDeal = Number(new URLSearchParams(location.search).get('deal'));
   let engine = await createFreecell({ deal: daily ? utcDeal() : Number.isInteger(requestedDeal) && requestedDeal >= 1 && requestedDeal <= 2147483647 ? requestedDeal : 1 });
   let openMenu = null;
-  let message = 'Move all the cards to the foundations, ace to king.';
+  let message = "将所有牌按花色从 A 到 K 依次移入回收区。";
   let fidelity = 'crisp';
   let started = Date.now();
   let wonReported = false;
@@ -64,14 +64,19 @@ export async function mountFreecell(container, { daily = false, onWin = () => {}
   function getState() { return typeof engine.state === 'function' ? engine.state() : engine.getState(); }
   function playSound(name) { try { sound(name); } catch { /* Sound is optional. */ } }
   function cancelAuto() { if (autofinishTimer) clearTimeout(autofinishTimer); autofinishTimer = null; }
-  const rowOffset = () => parseFloat(getComputedStyle(host).getPropertyValue('--fc-row-offset')) || 23;
+  const rowOffset = () => {
+    const style = getComputedStyle(host);
+    const offset = Number.parseFloat(style.getPropertyValue('--fc-row-offset')) || 23;
+    const scale = Number.parseFloat(style.getPropertyValue('--table-scale')) || 1;
+    return offset * scale;
+  };
 
   const table = createCardTable(felt, {
     cardClass: 'fc-card',
     piles: [
-      ...[0, 1, 2, 3].map(index => ({ id: `f${index}`, element: host.querySelector(`[data-fc-pile="f${index}"]`), row: 0, label: `free cell ${index + 1}` })),
-      ...[0, 1, 2, 3].map(index => ({ id: `h${index}`, element: host.querySelector(`[data-fc-pile="h${index}"]`), row: 0, label: `the ${SUITS[index]} foundation` })),
-      ...[0, 1, 2, 3, 4, 5, 6, 7].map(index => ({ id: `c${index}`, element: host.querySelector(`[data-fc-pile="c${index}"]`), row: 1, label: `column ${index + 1}`, fan: 'down', grow: true, faceUpOffset: rowOffset })),
+      ...[0, 1, 2, 3].map(index => ({ id: `f${index}`, element: host.querySelector(`[data-fc-pile="f${index}"]`), row: 0, label: `第 ${index + 1} 个空当` })),
+      ...[0, 1, 2, 3].map(index => ({ id: `h${index}`, element: host.querySelector(`[data-fc-pile="h${index}"]`), row: 0, label: `${SUITS[index]}回收区` })),
+      ...[0, 1, 2, 3, 4, 5, 6, 7].map(index => ({ id: `c${index}`, element: host.querySelector(`[data-fc-pile="c${index}"]`), row: 1, label: `第 ${index + 1} 列`, fan: 'down', grow: true, faceUpOffset: rowOffset })),
     ],
     canPick(pile, index) {
       const state = getState();
@@ -85,8 +90,8 @@ export async function mountFreecell(container, { daily = false, onWin = () => {}
     drop: (from, to) => applyMove({ from: toRef(from.pile), count: from.count }, toRef(to)),
     activate(pile, index) {
       if (getState().status === 'won') return;
-      if (pile[0] === 'c' && index >= 0) announce('Only an ordered run, descending in alternating colours, moves together.');
-      else announce(pile[0] === 'h' ? 'Foundations build up from the ace, one suit each.' : 'Select a card first, then its destination.');
+      if (pile[0] === 'c' && index >= 0) announce("只有点数连续递减、红黑交替的牌才能整组移动。");
+      else announce(pile[0] === 'h' ? "每个回收区只收一种花色，从 A 开始。" : "先选一张牌，再选目标位置。");
     },
     autoMove(pile, index) {
       const state = getState();
@@ -100,7 +105,7 @@ export async function mountFreecell(container, { daily = false, onWin = () => {}
       const free = state.freecells.findIndex(cell => cell === null);
       return free >= 0 ? applyMove({ from: ref, count: 1 }, { type: 'freecell', index: free }) : false;
     },
-    cardLabel: (id, faceUp, pile, index) => `${RANKS[id % 13]}, ${cardName(id)}, ${locationName(toRef(pile))}${pile[0] === 'c' ? `, card ${index + 1}` : ''}`,
+    cardLabel: (id, faceUp, pile, index) => `${RANKS[id % 13]}, ${cardName(id)}, ${locationName(toRef(pile))}${pile[0] === 'c' ? `，第 ${index + 1} 张` : ''}`,
     decorate(el, info) {
       const ref = toRef(info.pile);
       el.dataset.loc = ref.type;
@@ -113,10 +118,10 @@ export async function mountFreecell(container, { daily = false, onWin = () => {}
     messages: {
       pick: from => {
         const id = cardAt(from.pile, from.index);
-        return `Select a destination for ${cardName(id)}${from.count > 1 ? ` and the ${from.count - 1} card${from.count === 2 ? '' : 's'} below it` : ''}.`;
+        return `已选中${cardName(id)}${from.count > 1 ? ` 及其下方的 ${from.count - 1} 张牌` : ''}，请选择目标位置。`;
       },
-      cancel: () => 'Selection cleared.',
-      illegal: () => 'That move needs a different destination or more empty cells.',
+      cancel: () => "已取消选牌。",
+      illegal: () => "请更换目标位置，或先腾出更多空当。",
     },
   });
 
@@ -149,23 +154,23 @@ export async function mountFreecell(container, { daily = false, onWin = () => {}
     if (destroyed) return;
     const elapsed = Math.floor((Date.now() - started) / 1000);
     host.dataset.fidelity = fidelity;
-    host.querySelector('.fc-title-text').textContent = `FreeCell — Deal #${state.deal}`;
-    host.querySelector('.fc-menu-deal').textContent = daily ? 'Daily deal' : 'Classic rules';
+    host.querySelector('.fc-title-text').textContent = `空当接龙 · 第 ${state.deal} 局`;
+    host.querySelector('.fc-menu-deal').textContent = daily ? "每日牌局" : "经典规则";
     for (const button of host.querySelectorAll('[data-action="undo"]')) button.disabled = !state.moves;
-    host.querySelector('.fc-status-left').textContent = `${state.moves} move${state.moves === 1 ? '' : 's'}`;
-    host.querySelector('.fc-status-deal').textContent = `Deal #${state.deal}`;
+    host.querySelector('.fc-status-left').textContent = `${state.moves} 步`;
+    host.querySelector('.fc-status-deal').textContent = `第 ${state.deal} 局`;
     state.foundations.forEach((rank, index) => host.querySelector(`.fc-foundation[data-index="${index}"]`)
-      .setAttribute('aria-label', `${SUITS[index]} foundation, ${rank ? cardName(index * 13 + rank - 1) : 'empty'}`));
+      .setAttribute('aria-label', `${SUITS[index]}回收区，${rank ? cardName(index * 13 + rank - 1) : '空'}`));
     const panel = host.querySelector('.fc-win-panel');
     // In the site shell the win dialog is the one result screen.
     if (state.status === 'won' && !chrome) {
-      panel.innerHTML = `<span class="fc-win-kicker">A clean table.</span><strong>You won deal #${state.deal}.</strong><p>${state.moves} moves · ${elapsed}s${daily ? ' · Daily challenge complete' : ''}</p><button type="button" class="fc-classic-button" data-action="new">${daily ? 'Play this deal again' : 'Play another deal'}</button>`;
+      panel.innerHTML = `<span class="fc-win-kicker">全部收齐。</span><strong>你赢得了第 ${state.deal} 局。</strong><p>${state.moves} 步 · ${elapsed} 秒${daily ? " · 已完成每日挑战" : ''}</p><button type="button" class="fc-classic-button" data-action="new">${daily ? "重玩本局" : "再玩一局"}</button>`;
       panel.hidden = false;
     } else panel.hidden = true;
     host.querySelector('.fc-message').textContent = message;
     if (state.status === 'won' && !wonReported) {
       wonReported = true;
-      announce(`You won deal #${state.deal} in ${state.moves} moves.`);
+      announce(`你用了 ${state.moves} 步赢得第 ${state.deal} 局。`);
       playSound('win');
       onWin({ game: 'freecell', deal: state.deal, seed: state.deal, moves: state.moves, daily, elapsedSeconds: elapsed, params: { deal: state.deal } });
     }
@@ -183,10 +188,10 @@ export async function mountFreecell(container, { daily = false, onWin = () => {}
     cancelAuto();
     const ok = engine.move(selection.from, to, selection.count);
     if (ok) {
-      message = 'A little more room to think.';
+      message = "移动成功。";
       playSound(to.type === 'foundation' ? 'foundation' : 'card-place');
     } else {
-      message = 'That move needs a different destination or more empty cells.';
+      message = "请更换目标位置，或先腾出更多空当。";
       playSound('invalid');
     }
     render();
@@ -202,7 +207,7 @@ export async function mountFreecell(container, { daily = false, onWin = () => {}
     closeMenus();
     started = Date.now();
     wonReported = false;
-    message = daily ? 'The same daily deal for everyone. Take your time.' : 'A fresh deal. Every card is in view.';
+    message = daily ? "所有人今天使用同一局。" : "已发新局，全部牌均为明牌。";
     const state = getState();
     renderChrome(state);
     onStart();
@@ -227,13 +232,13 @@ export async function mountFreecell(container, { daily = false, onWin = () => {}
       if (destroyed) return;
       if (engine.autoMove()) {
         moved += 1;
-        message = 'Moving safe cards to the foundations…';
+        message = "正在将可安全收起的牌移入回收区…";
         playSound('foundation');
         render();
         autofinishTimer = setTimeout(step, fidelity === 'pixels' ? 90 : 150);
       } else {
         autofinishTimer = null;
-        announce(getState().status === 'won' ? 'Every card found its place.' : moved ? 'Safe cards are home. Your next move.' : 'No safe foundation moves yet. Free up a card first.');
+        announce(getState().status === 'won' ? "所有牌均已收齐。" : moved ? "已自动收牌，请继续。" : "暂时没有可安全收起的牌，请先腾出位置。");
       }
     };
     step();
@@ -272,8 +277,8 @@ export async function mountFreecell(container, { daily = false, onWin = () => {}
     cancelAuto();
     closeMenus();
     const ok = engine.undo();
-    if (ok) { table.select(null); wonReported = false; message = 'One move back. A fresh possibility.'; playSound('undo'); }
-    else message = 'You are at the beginning of this deal.';
+    if (ok) { table.select(null); wonReported = false; message = "已撤销一步。"; playSound('undo'); }
+    else message = "已回到本局开头。";
     render();
     return ok;
   }
@@ -283,13 +288,13 @@ export async function mountFreecell(container, { daily = false, onWin = () => {}
     closeMenus();
     table.select(null);
     const suggestion = engine.hint();
-    if (!suggestion) { announce('No legal moves are available. Undo a move to try another route.'); return false; }
+    if (!suggestion) { announce("暂无合法走法。可撤销一步试试其他路线。"); return false; }
     const from = toPile(suggestion.from);
     const count = suggestion.count ?? 1;
     const length = suggestion.from.type === 'column' ? getState().columns[suggestion.from.index].length : 1;
     const index = suggestion.from.type === 'column' ? length - count : 0;
     table.showHint({ pile: from, index, count }, toPile(suggestion.to));
-    announce(`Try moving ${cardName(cardAt(from, index))}${count > 1 ? ' and its group' : ''} to ${locationName(suggestion.to)}.`);
+    announce(`可将${cardName(cardAt(from, index))}${count > 1 ? " 及其牌组" : ''}移到${locationName(suggestion.to)}。`);
     return true;
   }
   function click(event) {
@@ -309,14 +314,14 @@ export async function mountFreecell(container, { daily = false, onWin = () => {}
     else if (event.key === 'F1') { event.preventDefault(); showDialog('help'); }
     else if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === 'z') { event.preventDefault(); undo(); }
     else if (event.key.toLowerCase() === 'h' && !event.ctrlKey && !event.metaKey && !event.altKey) { event.preventDefault(); action('hint'); }
-    else if (event.key === 'Escape') { table.select(null); closeMenus(); announce('Selection cleared.'); }
+    else if (event.key === 'Escape') { table.select(null); closeMenus(); announce("已取消选牌。"); }
   }
   function submit(event) {
     if (!event.target.matches('.fc-dialog-form')) return;
     event.preventDefault();
     const value = Number(event.target.elements.deal.value);
     if (!Number.isInteger(value) || value < 1 || value > 32000) {
-      event.target.querySelector('[data-deal-error]').textContent = 'Choose a whole number from 1 to 32,000.';
+      event.target.querySelector('[data-deal-error]').textContent = "请输入 1 到 32,000 之间的整数。";
       return;
     }
     event.target.closest('dialog').close();
@@ -333,7 +338,7 @@ export async function mountFreecell(container, { daily = false, onWin = () => {}
   return {
     destroy() { destroyed = true; cancelAuto(); table.destroy(); document.removeEventListener('keydown', keydown); host.removeEventListener('click', click); host.removeEventListener('submit', submit); host.remove(); },
     exportReplay() { return typeof engine.replay === 'function' ? engine.replay() : engine.exportReplay(); },
-    async loadReplay(replay) { cancelAuto(); engine = await loadFreecellReplay(replay); daily = false; table.select(null); closeMenus(); started = Date.now(); wonReported = false; message = chrome ? '' : 'Replay loaded. Pick up where this deal left off.'; render(false); },
+    async loadReplay(replay) { cancelAuto(); engine = await loadFreecellReplay(replay); daily = false; table.select(null); closeMenus(); started = Date.now(); wonReported = false; message = chrome ? '' : "回放已载入，可以接着玩。"; render(false); },
     newGame,
     undo,
     canUndo: () => getState().moves > 0,

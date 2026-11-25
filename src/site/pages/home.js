@@ -14,7 +14,7 @@ export function untilReset(now = new Date()) {
   const next = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
   const minutes = Math.max(1, Math.round((next - now.getTime()) / 60000));
   const hours = Math.floor(minutes / 60);
-  return hours ? `${hours} h ${minutes % 60} min` : `${minutes} min`;
+  return hours ? `${hours} 小时 ${minutes % 60} 分钟` : `${minutes} 分钟`;
 }
 
 function heroChoice(games) {
@@ -25,7 +25,7 @@ function heroChoice(games) {
 
 function switcher(games, current) {
   if (games.length < 2) return '';
-  return `<div class="switcher" role="tablist" aria-label="Choose a game to play">${games.map((game) => `<button type="button" role="tab" id="tab-${game.id}" class="switcher-tab" data-game="${game.id}" aria-selected="${game.id === current.id}" aria-controls="hero-panel" tabindex="${game.id === current.id ? 0 : -1}">${gameGlyph(game.icon, 'switcher-glyph')}<span>${escape(game.title)}</span></button>`).join('')}</div>`;
+  return `<div class="switcher" role="tablist" aria-label="选择游戏">${games.map((game) => `<button type="button" role="tab" id="tab-${game.id}" class="switcher-tab" data-game="${game.id}" aria-selected="${game.id === current.id}" aria-controls="hero-panel" tabindex="${game.id === current.id ? 0 : -1}">${gameGlyph(game.icon, 'switcher-glyph')}<span>${escape(game.title)}</span></button>`).join('')}</div>`;
 }
 
 function dailyCard(game) {
@@ -34,14 +34,14 @@ function dailyCard(game) {
   const solved = result !== undefined;
   return `<a class="daily-card${solved ? ' is-solved' : ''}" href="${game.dailyPath}">
     ${gameGlyph(game.icon, 'daily-glyph')}
-    <span class="daily-card-text"><strong>Daily ${escape(game.title)}</strong><small>${solved ? `Solved${result === null ? '' : ` in ${escape(formatTime(result))}`}` : `Today’s ${escape(game.dailyNoun)} is waiting`}</small></span>
-    <span class="daily-card-meta">${stats.currentStreak ? `<span class="streak" title="Current daily streak">${icon('streak', { size: 14 })}${stats.currentStreak}</span>` : ''}${solved ? icon('check', { size: 18, className: 'icon daily-check' }) : icon('arrowRight', { size: 18, className: 'icon daily-arrow' })}</span>
+    <span class="daily-card-text"><strong>每日挑战 · ${escape(game.title)}</strong><small>${solved ? `已完成${result === null ? '' : ` ，用时 ${escape(formatTime(result))}`}` : `今日挑战等你来玩`}</small></span>
+    <span class="daily-card-meta">${stats.currentStreak ? `<span class="streak" title="当前每日连胜">${icon('streak', { size: 14 })}${stats.currentStreak}</span>` : ''}${solved ? icon('check', { size: 18, className: 'icon daily-check' }) : icon('arrowRight', { size: 18, className: 'icon daily-arrow' })}</span>
   </a>`;
 }
 
 function collectionCard(game) {
   const actions = game.playable
-    ? `<div class="game-card-actions"><a class="text-link" href="${game.dailyPath}">Daily ${icon('arrow', { size: 12 })}</a></div>`
+    ? `<div class="game-card-actions"><a class="text-link" href="${game.dailyPath}">每日挑战 · ${icon('arrow', { size: 12 })}</a></div>`
     : `<p class="game-card-status">${escape(game.statusLabel)}</p>`;
   const title = game.routable
     ? `<a class="game-card-link" href="${game.path}">${escape(game.title)}</a>`
@@ -79,10 +79,10 @@ export function render(main) {
   main.innerHTML = `
   <section class="hero wrap">
     <div class="hero-copy">
-      <p class="eyebrow">Good games never get old</p>
-      <h1>A little time.<br><em>Well wasted.</em></h1>
-      <p class="hero-lede">The games that came with Windows XP, back in your browser. No installs, no accounts, nothing to sign up for. Just play.</p>
-      <p class="hero-note">${icon('lock', { size: 15 })}Everything stays on your device.</p>
+      <p class="eyebrow">经典小游戏</p>
+      <h1>闲来一局<br><em>随时开玩</em></h1>
+      <p class="hero-lede">重温 Windows XP 的经典小游戏。直接选择下方游戏即可开局。</p>
+      <p class="hero-note">${icon('lock', { size: 15 })}数据保存在本机。</p>
     </div>
     <div class="hero-play">
       ${switcher(games, current)}
@@ -93,24 +93,24 @@ export function render(main) {
 
   <section class="dailies wrap" id="daily" aria-labelledby="daily-heading">
     <div class="section-heading">
-      <div><p class="section-kicker">${escape(formatDate(today, { weekday: 'long', day: 'numeric', month: 'long' }))}</p><h2 id="daily-heading">Today’s dailies</h2></div>
-      <p class="section-aside">The same games for everyone, all day. New ones in <span data-reset>${untilReset()}</span>.</p>
+      <div><p class="section-kicker">${escape(formatDate(today, { weekday: 'long', day: 'numeric', month: 'long' }))}</p><h2 id="daily-heading">今日挑战</h2></div>
+      <p class="section-aside">所有人使用相同的牌局或雷区。距离下次更新还有 <span data-reset>${untilReset()}</span>.</p>
     </div>
     <div class="daily-list">${games.map(dailyCard).join('')}</div>
   </section>
 
   <section class="collection wrap" id="collection" aria-labelledby="collection-heading">
     <div class="section-heading">
-      <div><p class="section-kicker">The collection</p><h2 id="collection-heading">Five old friends.</h2></div>
-      <p class="section-aside">${games.length === all.length ? 'All five ready to play, each with a daily of its own.' : `${games.length} to play now. The rest are on their way, one at a time.`}</p>
+      <div><p class="section-kicker">游戏合集</p><h2 id="collection-heading">五款经典游戏</h2></div>
+      <p class="section-aside">${games.length === all.length ? "五款游戏都可以直接玩，各有每日挑战。" : `目前可玩 ${games.length} 款，其他游戏将陆续加入。`}</p>
     </div>
     <div class="game-grid">${all.map(collectionCard).join('')}</div>
   </section>
 
   <section class="secrets-teaser wrap" aria-labelledby="secrets-heading">
     <div class="section-heading">
-      <div><p class="section-kicker">There’s more beneath the surface</p><h2 id="secrets-heading">Small games. Good secrets.</h2></div>
-      <a class="text-link" href="/secrets">All the secrets ${icon('arrow', { size: 12 })}</a>
+      <div><p class="section-kicker">游戏掌故</p><h2 id="secrets-heading">规则里的小秘密</h2></div>
+      <a class="text-link" href="/secrets">查看全部掌故 ${icon('arrow', { size: 12 })}</a>
     </div>
     <div class="secrets-grid" data-secrets></div>
   </section>`;
@@ -162,7 +162,7 @@ export function render(main) {
   }, { signal });
 
   play(current).catch((error) => {
-    panel.innerHTML = `<div class="loading-game" role="alert">This game could not start here. ${escape(error.message || '')}</div>`;
+    panel.innerHTML = `<div class="loading-game" role="alert">游戏启动失败。${escape(error.message || '')}</div>`;
     console.error(error);
   });
 
@@ -185,5 +185,5 @@ export function render(main) {
 }
 
 export function secretCard(secret) {
-  return `<a class="secret-link" href="/secrets/${secret.slug}"><div class="secret-art">${secret.art}</div><span class="secret-number">Secret ${escape(secret.number)}</span><h3>${escape(secret.title)}</h3><p>${escape(secret.description)}</p></a>`;
+  return `<a class="secret-link" href="/secrets/${secret.slug}"><div class="secret-art">${secret.art}</div><span class="secret-number">掌故 ${escape(secret.number)}</span><h3>${escape(secret.title)}</h3><p>${escape(secret.description)}</p></a>`;
 }

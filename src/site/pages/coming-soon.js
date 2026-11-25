@@ -7,12 +7,12 @@ export function render(main, { game }) {
   const ready = playable();
   main.innerHTML = `<section class="soon wrap">
     <div class="soon-copy">
-      <nav class="crumbs" aria-label="Breadcrumb"><a href="/#collection">Games</a><span aria-hidden="true">/</span><span aria-current="page">${escape(game.title)}</span></nav>
+      <nav class="crumbs" aria-label="导航路径"><a href="/#collection">游戏</a><span aria-hidden="true">/</span><span aria-current="page">${escape(game.title)}</span></nav>
       <p class="eyebrow">${escape(game.statusLabel)}</p>
       <h1>${escape(game.title)}<em>.</em></h1>
       <p class="lede">${escape(game.intro || game.tagline)}</p>
-      <p>It is not ready to play yet. We add each game once it plays well and its rules pass their tests.</p>
-      ${ready.length ? `<p class="soon-meanwhile">Meanwhile: ${ready.map((other) => `<a class="text-link" href="${other.path}">${escape(other.title)} ${icon('arrow', { size: 12 })}</a>`).join(' ')}</p>` : ''}
+      <p>这款游戏还在制作中。</p>
+      ${ready.length ? `<p class="soon-meanwhile">可以先玩：${ready.map((other) => `<a class="text-link" href="${other.path}">${escape(other.title)} ${icon('arrow', { size: 12 })}</a>`).join(' ')}</p>` : ''}
     </div>
     <div class="soon-art" data-mini="${game.id}" aria-hidden="true"></div>
   </section>`;

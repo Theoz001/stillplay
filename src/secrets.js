@@ -9,37 +9,37 @@ const hardArt = svg(`<g transform="translate(57 29) rotate(-12 28 42)"><rect wid
 const numberArt = svg(`<text x="35" y="64" fill="#2c6249" font-family="Georgia" font-size="39">1</text><path d="M62 55h26m-6-5 6 5-6 5" stroke="#8e9b83"/><g transform="translate(99 27)"><rect x="7" y="-5" width="47" height="70" fill="#d7ddce" stroke="#a2ad98"/><rect x="3" y="-2" width="47" height="70" fill="#e4e8dd" stroke="#a2ad98"/><rect width="47" height="70" fill="#f9faf2" stroke="#a2ad98"/><text x="23.5" y="42" text-anchor="middle" fill="#64765e" font-family="Georgia" font-size="24">52</text></g><path d="M163 55h26m-6-5 6 5-6 5" stroke="#8e9b83"/><g fill="#879c7b">${Array.from({ length: 8 }, (_, i) => `<rect x="${53 + i * 17}" y="111" width="11" height="19"/>`).join('')}</g><text x="203" y="65" fill="#2c6249" font-family="Georgia" font-size="39">8</text>`);
 
 export const secrets = [
-  { slug: 'first-click', number: '01', title: 'Your first click gets a second chance.',
-    description: 'Watch a mine move. A small kindness, written into our rules.', art: firstArt },
-  { slug: 'xyzzy', number: '02', title: 'Five letters. One very small secret.',
-    description: 'The story of XYZZY, and the pixel that gave the game away.', art: xyzzyArt },
-  { slug: 'deal-11982', number: '03', title: 'The curious case of deal #11982.',
-    description: 'The FreeCell deal with a reputation that outlived the desktop.', art: hardArt },
-  { slug: 'deal-numbers', number: '04', title: 'A whole deck, inside one number.',
-    description: 'How a repeatable shuffle turns a deal into something you can share.', art: numberArt },
+  { slug: 'first-click', number: '01', title: "第一次点击为什么安全？",
+    description: "看看扫雷如何移走第一颗地雷。", art: firstArt },
+  { slug: 'xyzzy', number: '02', title: "五个字母，一处彩蛋",
+    description: "XYZZY 的来历，以及那个泄露地雷位置的像素点。", art: xyzzyArt },
+  { slug: 'deal-11982', number: '03', title: "空当接龙第 11982 局之谜",
+    description: "一个被玩家讨论多年的牌局编号。", art: hardArt },
+  { slug: 'deal-numbers', number: '04', title: "一个编号如何记住整副牌？",
+    description: "可重复的洗牌过程，让玩家能分享同一局。", art: numberArt },
 ];
 
-const linkBack = '<p style="margin-top:42px"><a class="text-link" href="/secrets">All the little secrets <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" width="12" height="12" aria-hidden="true"><path d="M3 13 13 3M4 3h9v9"/></svg></a></p>';
+const linkBack = "<p style=\"margin-top:42px\"><a class=\"text-link\" href=\"/secrets\">返回游戏掌故 <svg viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.2\" width=\"12\" height=\"12\" aria-hidden=\"true\"><path d=\"M3 13 13 3M4 3h9v9\"/></svg></a></p>";
 
 const articles = {
   'first-click': `
-    <p class="lede">A first move should be an invitation. In our Minesweeper, even a click on a mine gets one.</p>
-    <p>The board is already there before you touch it: 81 cells, ten mines, one deterministic seed. If the first cell you reveal contains a mine, our core moves that mine to the first empty cell in row order. Then it counts the neighboring mines again.</p>
-    <p>You get a safe first cell. You do not get a guaranteed empty opening, or a guarantee that every later move can be solved without guessing.</p>
-    <h2>Make the mine move.</h2>
-    <p>This inspection view deliberately shows every mine. The outlined cell starts with a mine in it. Press the button to send that exact click through the WebAssembly core used by the game.</p>
+    <p class="lede">在本版扫雷中，即使第一次恰好点到地雷，这一格也会变安全。</p>
+    <p>第一次点击前，程序已经根据一个种子排好 81 格和 10 颗地雷。如果第一次点中地雷，程序会按行寻找第一个没有地雷的位置，将它移过去，再重新计算相邻数字。</p>
+    <p>首次点击保证安全，但不保证一定会展开空白区域，也不保证之后每一步都能靠推理得出。</p>
+    <h2>试试移走地雷</h2>
+    <p>这张示意图显示全部地雷。描边的格子起初有雷，点击按钮即可查看游戏引擎如何处理第一次点击。</p>
     <div class="demo" data-first-demo>
       <form data-seed-form style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center">
-        <label for="inspection-seed">Board seed</label>
+        <label for="inspection-seed">雷区种子</label>
         <input id="inspection-seed" name="seed" type="number" min="0" max="4294967295" step="1" value="1" required style="width:130px;padding:9px;border:1px solid var(--line);background:var(--white);color:var(--ink)">
-        <button type="submit">Load seed</button>
+        <button type="submit">载入种子</button>
       </form>
       <div data-board-diagram style="width:252px;max-width:100%"></div>
       <p data-click-result aria-live="polite" style="text-align:center;max-width:440px"></p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"><button data-first-reveal>Reveal marked cell</button><button data-first-reset>Reset inspection</button></div>
-      <p>Inspection view · all mine locations visible · our actual game engine</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"><button data-first-reveal>翻开标记的方格</button><button data-first-reset>重置演示</button></div>
+      <p>示意图 · 显示全部地雷 · 使用实际游戏引擎</p>
     </div>
-    <h2>Two positions change. Ten mines remain.</h2>
+    <h2>两格发生变化，地雷总数仍是十颗。</h2>
     <p>The clicked cell loses its mine; another cell gains one. The total stays the same. This policy is deterministic, so a replay records the original seed and the click, rather than saving a second board.</p>
     <pre><code>// Excerpt from our cores/minesweeper.c
 cells[index] &amp;= ~MINE;
@@ -50,62 +50,62 @@ for (int target = 0; target &lt; board_width * board_height; ++target) {
     }
 }
 count_neighbors();</code></pre>
-    <p class="source-note">Source: our <code>ms_reveal</code> function in <code>cores/minesweeper.c</code>. We test first-click safety, mine totals and neighbor counts across 3,000 seeds.</p>`,
+    <p class="source-note">源码：见 <code>ms_reveal</code> 函数，位于 <code>cores/minesweeper.c</code>. We test first-click safety, mine totals and neighbor counts across 3,000 seeds.</p>`,
   xyzzy: `
-    <p class="lede">The smallest hint imaginable: a single pixel, quietly telling you what lay beneath the cursor.</p>
-    <div class="notice">A story from old cheat guides. Our Minesweeper does not include the XYZZY cheat.</div>
-    <p>Old Minesweeper cheat guides describe typing <code>XYZZY</code>, followed by additional keys, to enable a tiny black-or-white indicator at the corner of the screen. The accounts differ on the final key sequence and which versions display the pixel.</p>
-    <p>We are happy to leave the details to the old guides. The fun part is the mechanism: ordinary keyboard input can quietly change a hidden piece of state.</p>
-    <h2>A tiny input latch.</h2>
-    <p>Try typing <code>XYZZY</code> below, or use the five letter keys. This illustrative latch opens after those letters alone. Once it opens, switch the sample cell to see the enlarged indicator change.</p>
+    <p class="lede">早年的一个隐藏提示，只有屏幕角落的一个像素。</p>
+    <div class="notice">这是旧版攻略里记载的彩蛋。Stillplay 的扫雷不含 XYZZY 秘技。</div>
+    <p>早期扫雷攻略记载，输入 <code>XYZZY</code>并按后续组合键，就能在角落看到黑白提示点。各版本攻略对具体按键和适用版本说法不一。</p>
+    <p>这个彩蛋的原理很简单：一串普通按键可以改变程序内部的隐藏状态。</p>
+    <h2>试试这串按键</h2>
+    <p>在下方输入 <code>XYZZY</code> 或点击五个字母键。输入正确后，可以切换示例方格，查看放大的提示点。</p>
     <div class="demo" data-latch-demo>
-      <p style="font-size:9px;letter-spacing:1.4px;text-transform:uppercase">Illustrative mechanism · not part of our game</p>
-      <label for="latch-input">Type the five-letter word</label>
-      <input id="latch-input" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="64" placeholder="Type here" style="width:200px;padding:12px;border:1px solid var(--line);background:var(--white);color:var(--ink);text-align:center;letter-spacing:5px">
-      <div style="display:flex;gap:7px">${[...'XYZZY'].map((letter) => `<button data-latch-key="${letter}" aria-label="Type ${letter}" style="min-width:37px;padding:10px">${letter}</button>`).join('')}</div>
+      <p style="font-size:9px;letter-spacing:1.4px;text-transform:uppercase">原理演示 · 独立于实际游戏</p>
+      <label for="latch-input">输入五个字母</label>
+      <input id="latch-input" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="64" placeholder="在这里输入" style="width:200px;padding:12px;border:1px solid var(--line);background:var(--white);color:var(--ink);text-align:center;letter-spacing:5px">
+      <div style="display:flex;gap:7px">${[...'XYZZY'].map((letter) => `<button data-latch-key="${letter}" aria-label="输入 ${letter}" style="min-width:37px;padding:10px">${letter}</button>`).join('')}</div>
       <div style="display:flex;gap:18px;align-items:center;padding:18px 0">
         <div data-latch-pixel aria-hidden="true" style="height:38px;width:38px;background:#bbc3b1;border:1px solid #809174"></div>
-        <p data-latch-state role="status">Waiting for five letters.</p>
+        <p data-latch-state role="status">等待输入五个字母。</p>
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"><button data-sample-cell disabled>Sample cell: safe</button><button data-latch-reset>Reset latch</button></div>
-      <p>The indicator is enlarged for this demo. It does not inspect your game.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"><button data-sample-cell disabled>示例方格：安全</button><button data-latch-reset>重置输入</button></div>
+      <p>提示点已放大，只对应这里的示例方格。</p>
     </div>
-    <h2>Why the story stuck.</h2>
-    <p>The guides never quite agreed on the keys, the corner or the versions. What they shared was the delight of a game keeping a secret in plain sight, one pixel wide, for anyone patient enough to type a strange word.</p>
-    <p class="source-note">Documentary reading: the <a href="https://www.digitpress.com/eastereggs/pcminesweeper.htm" target="_blank" rel="noopener noreferrer">Digital Press Minesweeper Easter egg account</a> and a <a href="https://gamefaqs.gamespot.com/pc/562694-minesweeper/faqs/26661" target="_blank" rel="noopener noreferrer">2003 Minesweeper FAQ</a>.</p>`,
+    <h2>为什么大家还记得这个彩蛋？</h2>
+    <p>旧攻略对按键、位置和版本的说法各不相同。但能用一串奇怪的字母找到一个藏在眼前的像素，正是这个故事流传的原因。</p>
+    <p class="source-note">相关资料： <a href="https://www.digitpress.com/eastereggs/pcminesweeper.htm" target="_blank" rel="noopener noreferrer">Digital Press 的扫雷彩蛋记录</a> 以及 <a href="https://gamefaqs.gamespot.com/pc/562694-minesweeper/faqs/26661" target="_blank" rel="noopener noreferrer">2003 年的扫雷常见问题</a>.</p>`,
   'deal-11982': `
-    <p class="lede">Most deal numbers are a way to meet the same puzzle again. This one became a story people kept passing around.</p>
-    <div class="notice">A result from the FreeCell community, not from this project. We have not run an exhaustive solver on this deal.</div>
+    <p class="lede">牌局编号原本是为了重玩同一局，第 11982 局却成了玩家一直讨论的例外。</p>
+    <div class="notice">该结论来自空当接龙玩家社区，本项目没有对它进行穷尽求解。</div>
     <div class="demo" style="padding-top:45px;padding-bottom:45px">
       <div style="font-family:Georgia,serif;font-size:clamp(60px,15vw,100px);letter-spacing:-4px;color:var(--green);line-height:1">11982</div>
-      <p style="letter-spacing:2px;text-transform:uppercase;font-size:9px">One number. A very long conversation.</p>
+      <p style="letter-spacing:2px;text-transform:uppercase;font-size:9px">一个编号，一场长久的讨论</p>
     </div>
-    <h2>The deal that stayed behind.</h2>
-    <p>Michael Keller's <a href="https://www.solitairelaboratory.com/fcfaq.html" target="_blank" rel="noopener noreferrer">FreeCell FAQ at Solitaire Laboratory</a> documents the effort to solve the original set of 32,000 numbered deals. It identifies #11982 as the exceptional unsolvable deal under the standard rules, after sustained human and computer searches.</p>
+    <h2>唯独剩下的那一局</h2>
+    <p>Michael Keller 编写的 <a href="https://www.solitairelaboratory.com/fcfaq.html" target="_blank" rel="noopener noreferrer">《空当接龙常见问题》</a> 记录了玩家求解最初 32,000 局的过程。经过人工和计算机搜索，他们把第 11982 局认定为标准规则下唯一无解的一局。</p>
     <p>That is a documented historical result. Showing the number in our interface does not repeat the search behind it; that took solvers, spare machines and a lot of patience.</p>
-    <h2>Why the rules matter.</h2>
-    <p>Four free cells, eight columns, alternating colors. Change the available storage or the building rules and you change the puzzle. A solver's conclusion belongs to a precise starting layout and a precise set of legal moves.</p>
-    <p>Our FreeCell lets you explore the deal with undo and hints. It does not declare the position impossible, and a hint is a legal move suggestion rather than a promise of a solution.</p>
-    <p><a class="text-link" href="/freecell?deal=11982">Open deal #11982 <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" width="12" height="12" aria-hidden="true"><path d="M3 13 13 3M4 3h9v9"/></svg></a></p>
-    <h2>A number worth keeping.</h2>
-    <p>Whatever the outcome of one attempt, numbered deals make the conversation possible. Two people can start from the same arrangement, compare decisions, and discuss a puzzle across years and machines.</p>
-    <p class="source-note">Documentary source: Michael Keller, <a href="https://www.solitairelaboratory.com/fcfaq.html" target="_blank" rel="noopener noreferrer">FreeCell FAQ</a>, section “The Microsoft 32,000.” Our engine and deal numbering are our own code.</p>`,
+    <h2>规则为什么重要？</h2>
+    <p>四个空当、八列牌、红黑交替。改变可用空位或接牌规则，就会改变这个问题。某个求解结论只对应特定初始牌面和合法走法。</p>
+    <p>本版可用撤销和提示探索这一局。提示指出合法的下一步，并不保证一定能走到终局。</p>
+    <p><a class="text-link" href="/freecell?deal=11982">打开第 11982 局 <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" width="12" height="12" aria-hidden="true"><path d="M3 13 13 3M4 3h9v9"/></svg></a></p>
+    <h2>值得记住的编号</h2>
+    <p>两个人用同一编号得到相同的牌面，即使相隔多年、使用不同的电脑，也能比较各自的走法。</p>
+    <p class="source-note">资料来源：Michael Keller， <a href="https://www.solitairelaboratory.com/fcfaq.html" target="_blank" rel="noopener noreferrer">《空当接龙常见问题》</a>中关于微软最初 32,000 局的章节。Stillplay 的游戏引擎和发牌代码由项目自行编写。</p>`,
   'deal-numbers': `
-    <p class="lede">You do not need to send someone 52 cards. Sometimes one number will do.</p>
-    <p>A deal number is a seed. Put it through the same number generator, start with the same ordered deck, and select cards in the same order: the whole layout returns.</p>
-    <h2>Deal a number.</h2>
-    <p>These are the first eight cards from our actual FreeCell engine, one for each column. Deal #1 starts with the familiar jack of diamonds, two of diamonds, nine of hearts.</p>
+    <p class="lede">要分享一局牌，一个编号就够了。</p>
+    <p>牌局编号充当随机种子。只要生成器、初始牌序和依次选牌的算法相同，最终的牌面就相同。</p>
+    <h2>按编号发牌</h2>
+    <p>这里显示实际空当接龙引擎发出的前八张牌，每列一张。第 1 局以方块 J、方块 2、红心 9 开头。</p>
     <div class="demo" data-deal-demo>
       <form data-deal-form style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center">
-        <label for="secret-deal">Deal number</label>
+        <label for="secret-deal">牌局编号</label>
         <input id="secret-deal" name="deal" type="number" min="1" max="2147483647" step="1" value="1" required style="width:130px;padding:9px;border:1px solid var(--line);background:var(--white);color:var(--ink)">
-        <button type="submit">Deal cards</button>
+        <button type="submit">发牌</button>
       </form>
       <div data-deal-cards style="width:100%;max-width:580px"></div>
       <p data-deal-result role="status" style="text-align:center"></p>
-      <a class="text-link" data-play-deal href="/freecell?deal=1">Play this deal <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" width="12" height="12" aria-hidden="true"><path d="M3 13 13 3M4 3h9v9"/></svg></a>
+      <a class="text-link" data-play-deal href="/freecell?deal=1">玩这一局 <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" width="12" height="12" aria-hidden="true"><path d="M3 13 13 3M4 3h9v9"/></svg></a>
     </div>
-    <h2>A very small machine.</h2>
+    <h2>发牌的原理</h2>
     <p>Our C core uses the documented 32-bit Microsoft CRT recurrence. The arithmetic wraps at 32 bits; the generator then takes 15 bits for each draw. This snippet comes from our implementation.</p>
     <pre><code>// Excerpt from our cores/freecell.c
 random = random * 214013U + 2531011U;
@@ -114,10 +114,10 @@ int selected = ((random &gt;&gt; 16) &amp; 0x7fffU) % remaining;
 int original_id = deck[selected];
 int card = (original_id % 4) * 13 + original_id / 4;
 int column = draw % 8;</code></pre>
-    <p>After each selection, the last available card replaces the selected card in the working deck. Cards are dealt across the eight columns in turn. The starting deck order and this removal step matter just as much as the random-number formula.</p>
-    <h2>Repeatable is something we can test.</h2>
-    <p>The browser and the command-line player load the same WebAssembly module. Give both the same number and they produce the same arrangement. Our tests also check published deal fixtures.</p>
-    <p class="source-note">Source: our <code>fc_new</code> in <code>cores/freecell.c</code>. Background: <a href="https://www.solitairelaboratory.com/fcfaq.html" target="_blank" rel="noopener noreferrer">Solitaire Laboratory's explanation of numbered deals</a>.</p>`,
+    <p>每选一张牌，剩余牌中的最后一张就补到它的位置。牌依次发到八列。初始牌序和这个补位步骤都决定最终的牌面。</p>
+    <h2>如何验证可以重现？</h2>
+    <p>浏览器和命令行工具使用同一份 WebAssembly 模块。输入同一编号可以得到同一牌面，项目也用已公布的牌例做过核对。</p>
+    <p class="source-note">源码：见 <code>fc_new</code> in <code>cores/freecell.c</code>. Background: <a href="https://www.solitairelaboratory.com/fcfaq.html" target="_blank" rel="noopener noreferrer">Solitaire Laboratory 的编号发牌说明</a>.</p>`,
 };
 
 function boardSVG(state, target, moved = -1) {
@@ -128,7 +128,7 @@ function boardSVG(state, target, moved = -1) {
     const marked = index === target || index === moved;
     return `<g transform="translate(${x} ${y})"><rect x="1" y="1" width="23" height="23" fill="${cell.revealed ? '#fffef9' : '#d2d7c9'}" stroke="${marked ? '#2c6249' : '#aab59f'}" stroke-width="${marked ? '2' : '.6'}"/>${cell.mine ? '<circle cx="12.5" cy="12.5" r="4" fill="#526b47"/>' : cell.revealed && cell.adjacent ? `<text x="12.5" y="18" text-anchor="middle" font-size="16" font-weight="bold" font-family="monospace" fill="#3b6187">${cell.adjacent}</text>` : ''}</g>`;
   }).join('');
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${state.width * size} ${state.height * size}" width="100%" role="img" aria-label="Seed ${state.seed} inspection diagram. All ten mines are visible. The outlined cell is ${state.cells[target].revealed ? 'revealed and safe' : 'the mined first click target'}.">${body}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${state.width * size} ${state.height * size}" width="100%" role="img" aria-label="种子 ${state.seed} 的示意图。十颗地雷均可见。描边格是${state.cells[target].revealed ? "已翻开的安全格" : "第一次点击前埋有地雷的格子"}。">${body}</svg>`;
 }
 
 const suitNames = ['clubs', 'diamonds', 'hearts', 'spades'];
@@ -141,8 +141,8 @@ const suitPaths = [
 ];
 
 function cardsSVG(cards, deal) {
-  const labels = cards.map((id) => `${ranks[id % 13]} of ${suitNames[Math.floor(id / 13)]}`);
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 536 100" width="100%" role="img" aria-label="Deal ${deal}, first row: ${labels.join(', ')}.">${cards.map((id, i) => {
+  const labels = cards.map((id) => `${suitNames[Math.floor(id / 13)]}${ranks[id % 13]}`);
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 536 100" width="100%" role="img" aria-label="第 ${deal} 局，第一排：${labels.join(', ')}。">${cards.map((id, i) => {
     const suit = Math.floor(id / 13);
     const color = suit === 1 || suit === 2 ? '#a35746' : '#344c38';
     return `<g transform="translate(${i * 67 + 1} 3)"><rect width="61" height="86" rx="3" fill="#fffef9" stroke="#b1bba7"/><text x="8" y="22" fill="${color}" font-family="Georgia,serif" font-size="18">${ranks[id % 13]}</text><g transform="translate(31 49)" fill="${color}">${suitPaths[suit]}</g><text x="30" y="97" text-anchor="middle" fill="var(--muted)" font-family="sans-serif" font-size="8">${i + 1}</text></g>`;
@@ -152,10 +152,10 @@ function cardsSVG(cards, deal) {
 export async function renderSecret(slug, container, { showToast = () => {} } = {}) {
   const secret = secrets.find((item) => item.slug === slug);
   if (!secret) {
-    container.innerHTML = '<article class="article"><p class="eyebrow">Secrets</p><h1>A secret for another day.</h1><p>That page is not in the collection.</p><a class="text-link" href="/secrets">Explore the secrets</a></article>';
+    container.innerHTML = "<article class=\"article\"><p class=\"eyebrow\">游戏掌故</p><h1>暂无这篇掌故</h1><p>该页面尚未收录。</p><a class=\"text-link\" href=\"/secrets\">浏览其他掌故</a></article>";
     return () => {};
   }
-  container.innerHTML = `<article class="article"><p class="eyebrow">Little secrets · ${secret.number}</p><h1>${secret.title}</h1>${articles[slug]}${linkBack}</article>`;
+  container.innerHTML = `<article class="article"><p class="eyebrow">游戏掌故 · ${secret.number}</p><h1>${secret.title}</h1>${articles[slug]}${linkBack}</article>`;
   const controller = new AbortController();
   const on = (element, type, listener) => element.addEventListener(type, listener, { signal: controller.signal });
   const find = (selector) => container.querySelector(selector);
@@ -167,13 +167,13 @@ export async function renderSecret(slug, container, { showToast = () => {} } = {
     function reset() {
       const seed = Number(find('#inspection-seed').value);
       if (!Number.isInteger(seed) || seed < 0 || seed > 0xffff_ffff) {
-        showToast('Enter a seed from 0 to 4294967295.');
+        showToast("请输入 0 到 4294967295 之间的种子。");
         return;
       }
       const state = game.newGame({ level: 'beginner', seed });
       target = state.cells.findIndex((cell) => cell.mine);
       find('[data-board-diagram]').innerHTML = boardSVG(state, target);
-      find('[data-click-result]').textContent = `Before the click: column ${target % state.width + 1}, row ${Math.floor(target / state.width) + 1} contains a mine.`;
+      find('[data-click-result]').textContent = `点击前，第 ${target % state.width + 1} 列第 ${Math.floor(target / state.width) + 1} 行有一颗地雷。`;
       find('[data-first-reveal]').disabled = false;
     }
     on(find('[data-seed-form]'), 'submit', (event) => { event.preventDefault(); reset(); });
@@ -183,7 +183,7 @@ export async function renderSecret(slug, container, { showToast = () => {} } = {
       const after = game.reveal(target % before.width, Math.floor(target / before.width));
       const moved = after.cells.findIndex((cell, index) => cell.mine && !before.cells[index].mine);
       find('[data-board-diagram]').innerHTML = boardSVG(after, target, moved);
-      find('[data-click-result]').textContent = `Safe. The mine moved to column ${moved % after.width + 1}, row ${Math.floor(moved / after.width) + 1}. The board still contains ${after.mines} mines.`;
+      find('[data-click-result]').textContent = `现在安全了。地雷已移到第 ${moved % after.width + 1} 列第 ${Math.floor(moved / after.width) + 1} 行，雷区仍有 ${after.mines} 颗地雷。`;
       find('[data-first-reveal]').disabled = true;
     });
     reset();
@@ -196,9 +196,9 @@ export async function renderSecret(slug, container, { showToast = () => {} } = {
     let mine = false;
     function refresh() {
       find('[data-latch-pixel]').style.background = enabled ? mine ? '#20291e' : '#fffef9' : '#bbc3b1';
-      find('[data-latch-state]').textContent = enabled ? `Latch open. Sample cell: ${mine ? 'mine · black indicator' : 'safe · white indicator'}.` : `Waiting for five letters. ${input.value.length ? `${Math.min(input.value.length, 5)} entered.` : ''}`;
+      find('[data-latch-state]').textContent = enabled ? `已触发。示例方格：${mine ? "地雷 · 黑色提示点" : "安全 · 白色提示点"}。` : `等待输入五个字母。${input.value.length ? `已输入 ${Math.min(input.value.length, 5)}。` : ''}`;
       sample.disabled = !enabled;
-      sample.textContent = `Sample cell: ${mine ? 'mine' : 'safe'}`;
+      sample.textContent = `示例方格：${mine ? 'mine' : 'safe'}`;
     }
     function check() {
       if (input.value.toUpperCase().endsWith('XYZZY')) enabled = true;
@@ -220,12 +220,12 @@ export async function renderSecret(slug, container, { showToast = () => {} } = {
     function deal() {
       const number = Number(find('#secret-deal').value);
       if (!Number.isInteger(number) || number < 1 || number > 2147483647) {
-        showToast('Enter a deal number from 1 to 2147483647.');
+        showToast("请输入 1 到 2147483647 之间的牌局编号。");
         return;
       }
       const state = game.newGame(number);
       find('[data-deal-cards]').innerHTML = cardsSVG(state.columns.map((column) => column[0]), number);
-      find('[data-deal-result]').textContent = `Deal #${number} · first row of eight columns · 52 cards in the complete layout.`;
+      find('[data-deal-result]').textContent = `第 ${number} 局 · 八列的第一排 · 牌局共 52 张`;
       find('[data-play-deal]').href = `/freecell?deal=${number}`;
     }
     on(find('[data-deal-form]'), 'submit', (event) => { event.preventDefault(); deal(); });

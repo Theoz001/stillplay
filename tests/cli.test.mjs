@@ -56,10 +56,10 @@ test('FreeCell CLI deals, moves and undoes through persistent WASM state', async
 test('replay envelope bounds and shared daily derivation reject malformed inputs', () => {
   assert.throws(() => parseReplay('not json'), /JSON/);
   assert.throws(() => parseReplay({ version: 2, game: 'minesweeper', actions: [] }), /version/);
-  assert.throws(() => parseReplay({ version: 1, game: 'unknown', actions: [] }), /game/);
+  assert.throws(() => parseReplay({ version: 1, game: 'unknown', actions: [] }), /不支持此游戏的回放/);
   assert.throws(() => parseReplay(' '.repeat(1024 * 1024 + 1)), /1 MiB/);
   assert.equal(dailySeed('2026-10-17'), dailySeed('2026-10-17'));
   assert.notEqual(dailySeed('2026-10-17'), dailySeed('2026-10-18'));
   assert.ok(dailyDeal('2026-10-17') >= 1 && dailyDeal('2026-10-17') <= 32000);
-  assert.throws(() => dailySeed('2026-02-30'), /date/);
+  assert.throws(() => dailySeed('2026-02-30'), /日期格式必须为 YYYY-MM-DD/);
 });

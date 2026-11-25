@@ -2,6 +2,26 @@
 
 # stillplay.
 
+## 本地中文版
+
+这份工程包含中文版网页和 macOS 打包源码。网页和游戏交互在 `src/`，图标、音效和字体在 `public/`，游戏规则的 C 源码和已编译的 WebAssembly 在 `cores/`。Mac 窗口、菜单和本地资源加载在 `macos/main.swift`。
+
+Mac 版会恢复上次选择的牌桌倍率，并随倍率调整外窗。屏幕空间有限时，可以滚动查看牌桌。
+
+运行本地预览后，在浏览器打开 `http://127.0.0.1:4179/spider`。编辑网页代码后刷新浏览器即可查看效果。
+
+```sh
+node scripts/dev.mjs
+```
+
+打包需要 macOS 和 Xcode Command Line Tools。脚本将当前网页和 Swift 代码打成独立的应用包，并打印 `macos/build/` 下的生成路径。
+
+```sh
+./macos/build.sh
+```
+
+## Upstream
+
 **A little time. Well wasted.**
 
 A homage to the games that came with Windows XP: Minesweeper, FreeCell, Solitaire, Spider Solitaire and Hearts, back in your browser.<br>

@@ -47,7 +47,7 @@ let routeId = 0;
 function setTitle(path) {
   const meta = pageMeta(path.replace(/\/+$/, '') || '/');
   if (meta) document.title = meta.title;
-  else document.title = 'A small detour — Stillplay';
+  else document.title = "页面未找到 · Stillplay";
 }
 
 const NAV_FOR_ROUTE = { game: 'games', soon: 'games', daily: 'daily', secrets: 'secrets', secret: 'secrets', about: 'about' };
@@ -78,7 +78,7 @@ function runCleanup() {
 
 function showError(error) {
   console.error(error);
-  main.innerHTML = `<article class="article"><p class="eyebrow">Something went sideways</p><h1>A brief pause.</h1><p>${escape(error?.message || 'This page could not be drawn.')}</p><p><button type="button" class="button" data-reload>Try again</button></p></article>`;
+  main.innerHTML = `<article class="article"><p class="eyebrow">出错了</p><h1>页面暂时无法显示</h1><p>${escape(error?.message || "无法绘制页面。")}</p><p><button type="button" class="button" data-reload>重试</button></p></article>`;
   main.querySelector('[data-reload]').onclick = () => location.reload();
 }
 

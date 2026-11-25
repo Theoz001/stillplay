@@ -6,13 +6,13 @@ export const REPLAY_GAMES = ['minesweeper', 'freecell', 'solitaire', 'spider', '
 export function parseReplay(input) {
   let replay = input;
   if (typeof input === 'string') {
-    if (new TextEncoder().encode(input).byteLength > MAX_REPLAY_BYTES) throw new Error('Replay exceeds the 1 MiB limit.');
-    try { replay = JSON.parse(input); } catch { throw new Error('Replay must be valid JSON.'); }
+    if (new TextEncoder().encode(input).byteLength > MAX_REPLAY_BYTES) throw new Error("回放文件不能超过 1 MiB。");
+    try { replay = JSON.parse(input); } catch { throw new Error("回放必须为有效的 JSON 文件。"); }
   }
   if (!replay || typeof replay !== 'object' || Array.isArray(replay) || replay.version !== REPLAY_VERSION) throw new Error('Unsupported replay version; expected version 1.');
-  if (!REPLAY_GAMES.includes(replay.game)) throw new Error('Unsupported replay game.');
-  if (!Array.isArray(replay.actions) || replay.actions.length > 100000) throw new Error('Replay must contain at most 100,000 actions.');
-  if (new TextEncoder().encode(JSON.stringify(replay)).byteLength > MAX_REPLAY_BYTES) throw new Error('Replay exceeds the 1 MiB limit.');
+  if (!REPLAY_GAMES.includes(replay.game)) throw new Error("不支持此游戏的回放。");
+  if (!Array.isArray(replay.actions) || replay.actions.length > 100000) throw new Error("回放最多包含 100,000 步操作。");
+  if (new TextEncoder().encode(JSON.stringify(replay)).byteLength > MAX_REPLAY_BYTES) throw new Error("回放文件不能超过 1 MiB。");
   return replay;
 }
 
@@ -45,7 +45,7 @@ export function formatReplay(input) {
 
 /** One shared daily challenge globally, changing at 00:00 UTC. */
 export function dailySeed(date = new Date().toISOString().slice(0, 10)) {
-  if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date) || new Date(`${date}T00:00:00Z`).toISOString().slice(0, 10) !== date) throw new Error('Daily date must be a valid YYYY-MM-DD date.');
+  if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date) || new Date(`${date}T00:00:00Z`).toISOString().slice(0, 10) !== date) throw new Error("每日挑战日期格式必须为 YYYY-MM-DD。");
   let hash = 2166136261;
   for (const character of `stillplay:${date}`) hash = Math.imul(hash ^ character.charCodeAt(0), 16777619) >>> 0;
   return hash;
