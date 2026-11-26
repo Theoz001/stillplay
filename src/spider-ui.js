@@ -12,7 +12,7 @@
 import { createSpider, loadSpiderReplay } from './spider-core.js';
 import { createCardTable } from './card-table.js';
 import { dailyDeal } from './shared.js';
-import { cardSvg, cardName, suitSvg, RANKS, NAMES, SUIT_LABELS as SUITS } from './cards.js';
+import { cardSvg, cardName, suitSvg, suitColor, RANKS, NAMES, SUIT_LABELS as SUITS } from './cards.js';
 
 const SETTINGS_KEY = 'stillplay-spider-options';
 const COLUMNS = Array.from({ length: 10 }, (_, i) => `t${i}`);
@@ -66,7 +66,7 @@ function compactFace(card) {
   const rank = RANKS[rankOf(card)];
   return '<g class="sp-face-compact" display="none">'
     + '<rect x=".6" y=".6" width="68.8" height="96.8" rx="3" fill="#fffefa" stroke="#6b6c63" stroke-width="1.6"/>'
-    + `<text x="4" y="29" font-family="Arial,Helvetica,sans-serif" font-size="${rank === '10' ? 27 : 32}" font-weight="bold" letter-spacing="${rank === '10' ? -3 : 0}" fill="currentColor">${rank}</text>`
+    + `<text x="4" y="29" font-family="Arial,Helvetica,sans-serif" font-size="${rank === '10' ? 27 : 32}" font-weight="bold" letter-spacing="${rank === '10' ? -3 : 0}" style="fill:${suitColor(suit)}">${rank}</text>`
     + suitSvg(suit, 44, 6, 22)
     + suitSvg(suit, 17, 46, 36)
     + '</g>';

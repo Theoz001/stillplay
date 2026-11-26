@@ -600,6 +600,19 @@ try {
     const destination = pileCards(target, `t${action.to}`);
     await dragTo(target, pileCards(target, `t${action.from}`).nth(length - action.count), (await destination.count()) ? destination.last() : target.locator(`[data-pile-id="t${action.to}"]`));
   }
+  await check('Spider rank colors follow the suit when page text is black', async () => {
+    await page.goto(`${baseURL}/spider?deal=1339&suits=4`);
+    await page.addStyleTag({ content: '.ct-face text { color: #17201b; fill: currentColor; }' });
+    const red = 'rgb(178, 29, 37)', black = 'rgb(23, 32, 27)';
+    // This deal exposes the five of hearts, king of diamonds, four of clubs and five of spades.
+    for (const [card, ink] of [[30, red], [25, red], [3, black], [43, black]]) {
+      const face = page.locator(`.sp-column .sp-card[data-card="${card}"] .ct-face`);
+      const ranks = face.locator('text'); // Both corners, the compact rank and the court-card center.
+      await expect(ranks).toHaveCount(card % 13 >= 10 ? 4 : 3);
+      await expect(face.locator('.sp-face-full > svg path').first()).toHaveCSS('fill', ink);
+      for (const rank of await ranks.all()) await expect(rank).toHaveCSS('fill', ink);
+    }
+  });
   await check('Spider deals two decks, drags a legal run and snaps an illegal drop back', async () => {
     await page.goto(`${baseURL}/spider?deal=7&suits=1`);
     await expect(page.locator('.spider-root .ct-card')).toHaveCount(104);
